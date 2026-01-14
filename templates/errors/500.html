@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erreur 500 - Erreur serveur</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .error-detail { font-family: 'Courier New', monospace; }
+        .trace-line { background-color: #f5f5f5; padding: 8px; border-left: 3px solid #ef4444; margin: 4px 0; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-red-50 to-pink-50 min-h-screen p-4">
+    <div class="max-w-6xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4v2m0 4v2M7.59 8.59a2 2 0 11-2.83-2.83m5.66 5.66a2 2 0 11-2.83 2.83m5.66 5.66a2 2 0 11-2.83 2.83M3 12a9 9 0 1118 0 9 9 0 01-18 0z"/>
+                    </svg>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-800 mb-3">500</h1>
+                <h2 class="text-xl font-semibold text-gray-600 mb-4">Erreur serveur interne</h2>
+                <p class="text-gray-500 mb-8">Une erreur inattendue s'est produite lors du traitement de votre requête.</p>
+            </div>
+
+            <!-- Error Info -->
+            {% if error_info %}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Left Column: Request Info -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                        <span class="w-2 h-2 bg-red-500 rounded-full mr-3"></span>
+                        Information de la requête
+                    </h3>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <span class="font-semibold text-gray-700">URL:</span>
+                            <span class="text-gray-600 break-words">{{ error_info.path }}</span>
+                        </div>
+                        <div>
+                            <span class="font-semibold text-gray-700">Méthode HTTP:</span>
+                            <span class="text-gray-600">{{ error_info.method }}</span>
+                        </div>
+                        <div>
+                            <span class="font-semibold text-gray-700">Adresse IP:</span>
+                            <span class="text-gray-600">{{ error_info.ip }}</span>
+                        </div>
+                        <div>
+                            <span class="font-semibold text-gray-700">Timestamp:</span>
+                            <span class="text-gray-600">{{ error_info.timestamp }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Error Message -->
+                <div class="bg-red-50 rounded-lg p-6 border-l-4 border-red-500">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                        <span class="w-2 h-2 bg-red-500 rounded-full mr-3"></span>
+                        Message d'erreur
+                    </h3>
+                    <p class="text-red-700 font-semibold error-detail text-sm mb-3">{{ error_info.message }}</p>
+                    <div class="bg-white rounded p-3 border border-red-200">
+                        <p class="text-gray-600 text-xs">Vérifiez:</p>
+                        <ul class="list-disc list-inside text-xs text-gray-600 mt-2 space-y-1">
+                            <li>Les variables d'environnement (DATABASE_URL, SESSION_SECRET)</li>
+                            <li>La connexion à la base de données PostgreSQL</li>
+                            <li>Les permissions des fichiers et dossiers</li>
+                            <li>Les imports de modules Python</li>
+                            <li>La configuration des migrations de base de données</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Traceback (Debug Mode) -->
+            {% if debug and error_info.traceback %}
+            <div class="bg-gray-900 rounded-lg p-6 mb-8 overflow-auto max-h-96">
+                <h3 class="text-lg font-semibold text-gray-100 mb-4 flex items-center">
+                    <span class="w-2 h-2 bg-yellow-400 rounded-full mr-3"></span>
+                    Détails de la pile d'exécution (Traceback)
+                </h3>
+                <div class="error-detail text-xs text-gray-300 space-y-1">
+                    {% for line in error_info.traceback %}
+                        {% if line.strip() %}
+                        <div class="text-gray-400">{{ line }}</div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
+                <p class="text-yellow-800 text-sm">
+                    <strong>⚠️ Mode débogage activé:</strong> Le traceback ci-dessus est visible en développement uniquement. En production, ces détails ne sont pas affichés.
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- Database Check Info -->
+            <div class="bg-blue-50 rounded-lg p-6 mb-8 border-l-4 border-blue-500">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                    Éléments à vérifier
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div class="bg-white rounded p-3">
+                        <p class="font-semibold text-gray-700 mb-2">🗄️ Base de données</p>
+                        <ul class="text-gray-600 space-y-1 text-xs">
+                            <li>✓ Vérifier connexion PostgreSQL</li>
+                            <li>✓ Vérifier les migrations exécutées</li>
+                            <li>✓ Vérifier les tables créées</li>
+                            <li>✓ Vérifier les permissions utilisateur DB</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white rounded p-3">
+                        <p class="font-semibold text-gray-700 mb-2">⚙️ Configuration</p>
+                        <ul class="text-gray-600 space-y-1 text-xs">
+                            <li>✓ DATABASE_URL défini</li>
+                            <li>✓ SESSION_SECRET défini</li>
+                            <li>✓ FLASK_ENV correct</li>
+                            <li>✓ Fichiers statiques accessibles</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white rounded p-3">
+                        <p class="font-semibold text-gray-700 mb-2">📦 Dépendances</p>
+                        <ul class="text-gray-600 space-y-1 text-xs">
+                            <li>✓ Flask installé</li>
+                            <li>✓ Flask-SQLAlchemy installé</li>
+                            <li>✓ SQLAlchemy compatible</li>
+                            <li>✓ psycopg2 installé</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white rounded p-3">
+                        <p class="font-semibold text-gray-700 mb-2">🔐 Sécurité</p>
+                        <ul class="text-gray-600 space-y-1 text-xs">
+                            <li>✓ Permissions fichiers correctes</li>
+                            <li>✓ Variables sensibles sécurisées</li>
+                            <li>✓ Logs sans données sensibles</li>
+                            <li>✓ Erreurs loggées correctement</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support -->
+            <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-6 mb-8">
+                <h3 class="text-lg font-semibold text-gray-700 mb-3">💡 Dépannage rapide</h3>
+                <ol class="text-sm text-gray-700 space-y-2 list-decimal list-inside">
+                    <li>Exécutez le script de diagnostic: <code class="bg-white px-2 py-1 rounded text-xs font-mono">python diagnose_app.py</code></li>
+                    <li>Vérifiez les logs de l'application: <code class="bg-white px-2 py-1 rounded text-xs font-mono">tail -f /var/log/app.log</code></li>
+                    <li>Testez la connexion DB: <code class="bg-white px-2 py-1 rounded text-xs font-mono">psql $DATABASE_URL -c "SELECT 1;"</code></li>
+                    <li>Vérifiez les migrations: <code class="bg-white px-2 py-1 rounded text-xs font-mono">python init_db.py</code></li>
+                    <li>Redémarrez l'application</li>
+                </ol>
+            </div>
+
+            <!-- Actions -->
+            <div class="space-y-3">
+                <a href="{{ url_for('public.index') }}" class="block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 text-center">
+                    Retour à l'accueil
+                </a>
+                <a href="javascript:history.back()" class="block w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-lg transition duration-200 text-center">
+                    Retour à la page précédente
+                </a>
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-8 pt-6 border-t border-gray-200 text-center text-xs text-gray-500">
+                <p>UrgenceGabon.com | Erreur serveur | Contactez le support technique</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

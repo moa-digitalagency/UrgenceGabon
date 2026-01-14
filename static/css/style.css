@@ -1,0 +1,144 @@
+/*
+ * UrgenceGabon.com
+ * By MOA Digital Agency LLC
+ * Developed by: Aisance KALONJI
+ * Contact: moa@myoneart.com
+ * Website: www.myoneart.com
+ *
+ * static/css/style.css - Styles personnalisés
+ * Ce fichier contient les styles CSS personnalisés pour les composants UI:
+ * scrollbars, cartes pharmacie, onglets, modal, carte Leaflet et animations.
+ */
+
+header {
+    background: 
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><defs><pattern id="african-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M50,10 L70,30 L70,70 L50,90 L30,70 L30,30 Z" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/><path d="M25,25 L40,40 L25,55 L10,40 Z" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/><path d="M75,25 L90,40 L75,55 L60,40 Z" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/><line x1="10" y1="10" x2="35" y2="10" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/><line x1="65" y1="10" x2="90" y2="10" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/><line x1="10" y1="90" x2="35" y2="90" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/><line x1="65" y1="90" x2="90" y2="90" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23african-pattern)"/></svg>'),
+                linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    background-size: 100px 100px, auto !important;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.pharmacy-card {
+    transition: all 0.15s ease;
+}
+
+.pharmacy-card:active {
+    transform: scale(0.98);
+}
+
+.mobile-tab-btn {
+    transition: all 0.2s ease;
+}
+
+.mobile-tab-btn.active {
+    color: #10b981;
+}
+
+.mobile-tab-btn.active svg {
+    stroke-width: 2.5;
+}
+
+.city-filter {
+    transition: all 0.2s ease;
+}
+
+.city-filter.active {
+    background: white;
+    color: #047857;
+}
+
+.tab-btn {
+    transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+    border-color: #10b981;
+    color: #10b981;
+}
+
+#pharmacyModal {
+    backdrop-filter: blur(4px);
+}
+
+#pharmacyModal > div {
+    animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-popup-content {
+    margin: 0;
+}
+
+.leaflet-container {
+    font-family: 'Inter', sans-serif;
+}
+
+@media (max-width: 768px) {
+    .leaflet-control-zoom {
+        display: none;
+    }
+}
+
+::-webkit-scrollbar {
+    width: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+@supports (-webkit-touch-callout: none) {
+    .pb-20 {
+        padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+    }
+    
+    nav.fixed.bottom-0 {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+#gpsLocateBtn {
+    z-index: 1200 !important;
+}
+
+#tab-map {
+    position: relative;
+    z-index: 0;
+}
+
+.leaflet-pane,
+.leaflet-control-container {
+    z-index: auto !important;
+}

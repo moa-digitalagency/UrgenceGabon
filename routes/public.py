@@ -71,9 +71,9 @@ def generate_sitemap():
             'changefreq': 'daily'
         })
         
-        # Add all active pharmacies (public pages - linked from home)
+        # Add all pharmacies (public pages - linked from home)
         try:
-            pharmacies = Pharmacy.query.filter_by(is_active=True).all()
+            pharmacies = Pharmacy.query.all()
             for pharmacy in pharmacies:
                 lastmod = pharmacy.updated_at or pharmacy.created_at or datetime.utcnow()
                 pharmacy_url = base_url + f'/#pharmacy-{pharmacy.id}'

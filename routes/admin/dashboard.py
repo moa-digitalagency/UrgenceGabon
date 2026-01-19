@@ -28,7 +28,9 @@ def safe_query(query_func, default=None):
     try:
         return query_func()
     except Exception as e:
+        import traceback
         logger.error(f"Query error: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         db.session.rollback()
         return default if default is not None else []
 

@@ -458,6 +458,19 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100">
+                                    {% if not pharmacies %}
+                                    <tr>
+                                        <td colspan="8" class="px-6 py-12 text-center">
+                                            <div class="text-gray-500">
+                                                <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                                </svg>
+                                                <p class="text-lg font-medium">Aucune pharmacie trouvee</p>
+                                                <p class="text-sm mt-2">Verifiez les logs du serveur pour plus de details</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
                                     {% for pharmacy in pharmacies %}
                                     <tr class="hover:bg-gray-50 transition pharmacy-row" id="pharmacy-row-{{ pharmacy.id }}">
                                         <td class="px-6 py-4">

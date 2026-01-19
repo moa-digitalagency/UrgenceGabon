@@ -44,6 +44,9 @@ def admin_dashboard():
             []
         )
         
+        # Debug: log pharmacy count
+        logger.info(f"Dashboard loaded: {len(pharmacies)} pharmacies found")
+        
         pending_locations = safe_query(
             lambda: LocationSubmission.query.filter_by(status='pending').order_by(LocationSubmission.created_at.desc()).all(),
             []
@@ -297,9 +300,11 @@ def admin_dashboard():
         )
         
     except Exception as e:
+        import traceback
         logger.error(f"Dashboard error: {e}")
+        logger.error(f"Dashboard traceback: {traceback.format_exc()}")
         db.session.rollback()
-        flash('Erreur lors du chargement du tableau de bord. Veuillez réessayer.', 'error')
+        flash(f'Erreur lors du chargement: {str(e)}', 'error')
         return render_template('admin/dashboard.html', 
             pharmacies=[],
             pending_locations=[],

@@ -44,55 +44,82 @@ def is_admin_path(url_path):
 
 def generate_sitemap():
     """
-    Generate dynamic sitemap with all public pages and active pharmacies.
-    Automatically excludes ALL admin pages and their subpages:
-    - /admin
-    - /admin/
-    - /admin/auth
-    - /admin/dashboard
-    - /admin/pharmacy
-    - /admin/submissions
-    - /admin/emergency
-    - /admin/settings
-    - /admin/ads
-    - /admin/logs
-    And all their subpages...
+    Generate comprehensive dynamic sitemap for SEO.
+    Includes:
+    - Homepage with all tabs (pharmacies, garde, carte, urgence, suggestions)
+    - Individual pharmacy anchors
+    - City-specific views
+    Excludes all admin pages.
     """
     try:
         base_url = request.url_root.rstrip('/')
+        now = datetime.utcnow()
         
         sitemap_entries = []
         
-        # Add home page (public)
+        # Homepage - highest priority
         sitemap_entries.append({
             'url': base_url + '/',
-            'lastmod': datetime.utcnow().isoformat(),
+            'lastmod': now.strftime('%Y-%m-%d'),
             'priority': '1.0',
             'changefreq': 'daily'
         })
         
-        # Add all pharmacies (public pages - linked from home)
+        # Main tab sections (using hash anchors for SPA-like navigation)
+        tabs = [
+            {'path': '/#toutes-pharmacies', 'priority': '0.9', 'changefreq': 'daily'},
+            {'path': '/#pharmacies-garde', 'priority': '0.95', 'changefreq': 'daily'},
+            {'path': '/#carte', 'priority': '0.7', 'changefreq': 'weekly'},
+            {'path': '/#numeros-urgence', 'priority': '0.8', 'changefreq': 'monthly'},
+            {'path': '/#suggestions', 'priority': '0.5', 'changefreq': 'monthly'},
+        ]
+        
+        for tab in tabs:
+            sitemap_entries.append({
+                'url': base_url + tab['path'],
+                'lastmod': now.strftime('%Y-%m-%d'),
+                'priority': tab['priority'],
+                'changefreq': tab['changefreq']
+            })
+        
+        # City-specific filters
         try:
-            pharmacies = Pharmacy.query.all()
-            for pharmacy in pharmacies:
-                lastmod = pharmacy.updated_at or pharmacy.created_at or datetime.utcnow()
-                pharmacy_url = base_url + f'/#pharmacy-{pharmacy.id}'
-                
-                # Double-check: ensure no admin paths are added
-                if not is_admin_path(pharmacy_url):
+            cities = db.session.query(Pharmacy.ville).distinct().all()
+            for (city,) in cities:
+                if city:
                     sitemap_entries.append({
-                        'url': pharmacy_url,
-                        'lastmod': lastmod.isoformat() if hasattr(lastmod, 'isoformat') else str(lastmod),
-                        'priority': '0.8',
+                        'url': base_url + f'/?ville={city}',
+                        'lastmod': now.strftime('%Y-%m-%d'),
+                        'priority': '0.7',
                         'changefreq': 'weekly'
                     })
         except Exception:
-            pass  # Continue without pharmacies if database fails
+            pass
         
-        # Generate XML with all public pages only
+        # Individual pharmacies
+        try:
+            pharmacies = Pharmacy.query.all()
+            for pharmacy in pharmacies:
+                lastmod = pharmacy.updated_at or pharmacy.created_at or now
+                lastmod_str = lastmod.strftime('%Y-%m-%d') if hasattr(lastmod, 'strftime') else str(lastmod)[:10]
+                
+                # Pharmacy anchor
+                sitemap_entries.append({
+                    'url': base_url + f'/#pharmacy-{pharmacy.id}',
+                    'lastmod': lastmod_str,
+                    'priority': '0.6',
+                    'changefreq': 'weekly'
+                })
+        except Exception:
+            pass
+        
+        # Generate XML
         xml_lines = [
             '<?xml version="1.0" encoding="UTF-8"?>',
-            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
+            '        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+            '        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9',
+            '        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">'
         ]
         
         for entry in sitemap_entries:
@@ -107,44 +134,154 @@ def generate_sitemap():
         
         return '\n'.join(xml_lines)
     except Exception:
-        # Fallback: return empty sitemap with home page only
         return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>'
 
 
 def generate_robots_txt():
     """
-    Generate dynamic robots.txt blocking ALL admin pages and their subpages.
-    Blocks:
-    - /admin (the admin page itself)
-    - /admin/ (all admin subpages including auth, dashboard, pharmacy, etc.)
-    
-    Allows all other public pages.
-    References the sitemap for search engines.
+    Generate dynamic robots.txt with comprehensive crawler rules.
+    - Allows all major search engines and AI crawlers
+    - Blocks admin pages and sensitive endpoints
+    - References sitemap for indexing
     """
     try:
         base_url = request.url_root.rstrip('/')
         sitemap_url = base_url + '/sitemap.xml'
         
         robots_lines = [
+            '# ============================================',
             '# UrgenceGabon.com - Robots.txt Configuration',
-            '# Generated dynamically to manage search engine crawling',
+            '# Annuaire des pharmacies au Gabon',
+            '# ============================================',
             '',
+            '# -----------------------------------------',
+            '# SEARCH ENGINE CRAWLERS (Allowed)',
+            '# -----------------------------------------',
+            'User-agent: Googlebot',
+            'Allow: /',
+            'Disallow: /admin',
+            'Disallow: /admin/',
+            '',
+            'User-agent: Bingbot',
+            'Allow: /',
+            'Disallow: /admin',
+            'Disallow: /admin/',
+            '',
+            'User-agent: Yandex',
+            'Allow: /',
+            'Disallow: /admin',
+            'Disallow: /admin/',
+            '',
+            'User-agent: Baiduspider',
+            'Allow: /',
+            'Disallow: /admin',
+            'Disallow: /admin/',
+            '',
+            'User-agent: DuckDuckBot',
+            'Allow: /',
+            'Disallow: /admin',
+            'Disallow: /admin/',
+            '',
+            '# -----------------------------------------',
+            '# AI CRAWLERS (Allowed for training/search)',
+            '# -----------------------------------------',
+            '# OpenAI / ChatGPT',
+            'User-agent: GPTBot',
+            'Allow: /',
+            'Disallow: /admin',
+            'Disallow: /admin/',
+            '',
+            'User-agent: ChatGPT-User',
+            'Allow: /',
+            'Disallow: /admin',
+            'Disallow: /admin/',
+            '',
+            '# Anthropic / Claude',
+            'User-agent: anthropic-ai',
+            'Allow: /',
+            'Disallow: /admin',
+            'Disallow: /admin/',
+            '',
+            'User-agent: Claude-Web',
+            'Allow: /',
+            'Disallow: /admin',
+            'Disallow: /admin/',
+            '',
+            '# Google AI (Bard/Gemini)',
+            'User-agent: Google-Extended',
+            'Allow: /',
+            'Disallow: /admin',
+            'Disallow: /admin/',
+            '',
+            '# Perplexity AI',
+            'User-agent: PerplexityBot',
+            'Allow: /',
+            'Disallow: /admin',
+            'Disallow: /admin/',
+            '',
+            '# Cohere AI',
+            'User-agent: cohere-ai',
+            'Allow: /',
+            'Disallow: /admin',
+            'Disallow: /admin/',
+            '',
+            '# Meta AI',
+            'User-agent: FacebookBot',
+            'Allow: /',
+            'Disallow: /admin',
+            'Disallow: /admin/',
+            '',
+            'User-agent: Meta-ExternalAgent',
+            'Allow: /',
+            'Disallow: /admin',
+            'Disallow: /admin/',
+            '',
+            '# -----------------------------------------',
+            '# DEFAULT RULES (All other bots)',
+            '# -----------------------------------------',
             'User-agent: *',
             'Allow: /',
             '',
-            '# Disallow all admin pages and their subpages',
-            '# This includes: /admin/auth, /admin/dashboard, /admin/pharmacy,',
-            '# /admin/submissions, /admin/emergency, /admin/settings, /admin/ads, /admin/logs',
-            'Disallow: /admin/',
+            '# Block admin panel and all subpages',
             'Disallow: /admin',
+            'Disallow: /admin/',
             '',
-            '# Reference to the sitemap containing all public pages',
+            '# Block API endpoints (internal use only)',
+            'Disallow: /api/',
+            '',
+            '# Block form submission endpoints',
+            'Disallow: /submit-location',
+            'Disallow: /submit-info',
+            'Disallow: /submit-suggestion',
+            'Disallow: /propose-pharmacy',
+            'Disallow: /track-',
+            '',
+            '# -----------------------------------------',
+            '# BLOCKED BOTS (Scrapers/Bad actors)',
+            '# -----------------------------------------',
+            'User-agent: AhrefsBot',
+            'Disallow: /',
+            '',
+            'User-agent: SemrushBot',
+            'Disallow: /',
+            '',
+            'User-agent: MJ12bot',
+            'Disallow: /',
+            '',
+            'User-agent: DotBot',
+            'Disallow: /',
+            '',
+            '# -----------------------------------------',
+            '# CRAWL SETTINGS',
+            '# -----------------------------------------',
+            'Crawl-delay: 1',
+            '',
+            '# Sitemap location',
             f'Sitemap: {sitemap_url}'
         ]
         
         return '\n'.join(robots_lines)
     except Exception:
-        # Fallback
         return 'User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /admin'
 
 

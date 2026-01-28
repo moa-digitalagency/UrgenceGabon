@@ -81,9 +81,9 @@
                         </div>
                         {% endif %}
                         
-                        {% if popup.image_url %}
+                        {% if popup.get_image_url() %}
                         <div class="mt-2">
-                            <img src="{{ popup.image_url }}" alt="Preview" class="h-16 w-auto rounded border">
+                            <img src="{{ popup.get_image_url() }}" alt="Preview" class="h-16 w-auto rounded border">
                         </div>
                         {% endif %}
                     </div>

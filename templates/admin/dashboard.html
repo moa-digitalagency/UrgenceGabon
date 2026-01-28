@@ -492,7 +492,7 @@
                                             <span class="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-lg">{{ pharmacy.ville }}</span>
                                         </td>
                                         <td class="px-6 py-4 text-center">
-                                            <button onclick="openGardeModal({{ pharmacy.id }}, '{{ pharmacy.nom|replace("'", "\\'") }}', {{ 'true' if pharmacy.is_garde else 'false' }}, 'pharmacies')" 
+                                            <button onclick="openGardeModal({{ pharmacy.id }}, '{{ (pharmacy.nom or '')|replace("'", "\\'") }}', {{ 'true' if pharmacy.is_garde else 'false' }}, 'pharmacies')"
                                                     class="garde-btn-{{ pharmacy.id }} p-2 rounded-xl transition {% if pharmacy.is_garde %}bg-red-100 text-red-600 hover:bg-red-200{% else %}bg-gray-100 text-gray-400 hover:bg-gray-200{% endif %}">
                                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
@@ -620,7 +620,7 @@
                                         </td>
                                         <td class="px-6 py-4 text-right">
                                             <div class="flex items-center justify-end gap-2">
-                                                <button onclick="openGardeModal({{ pharmacy.id }}, '{{ pharmacy.nom|replace("'", "\\'") }}', true, 'garde')" 
+                                                <button onclick="openGardeModal({{ pharmacy.id }}, '{{ (pharmacy.nom or '')|replace("'", "\\'") }}', true, 'garde')"
                                                         class="px-3 py-1.5 bg-red-100 text-red-600 rounded-lg text-sm font-medium hover:bg-red-200 transition">
                                                     Modifier
                                                 </button>

@@ -38,13 +38,22 @@ def safe_query(query_func, default=None):
 @admin_bp.route('/')
 @login_required
 def admin_dashboard():
+    # Initialize variables with defaults
+    pharmacies = []
+
     try:
         # Don't use safe_query for the main pharmacies list so we can see the error if it fails
         pharmacies = Pharmacy.query.order_by(Pharmacy.ville, Pharmacy.nom).all()
-        
         # Debug: log pharmacy count
         logger.info(f"Dashboard loaded: {len(pharmacies)} pharmacies found")
-        
+    except Exception as e:
+        import traceback
+        logger.error(f"Error loading pharmacies: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        flash(f'Erreur lors du chargement des pharmacies: {str(e)}', 'error')
+        pharmacies = []
+
+    try:
         pending_locations = safe_query(
             lambda: LocationSubmission.query.filter_by(status='pending').order_by(LocationSubmission.created_at.desc()).all(),
             []
@@ -304,6 +313,8 @@ def admin_dashboard():
         db.session.rollback()
         # Include detailed error in flash message for debugging
         flash(f'Erreur lors du chargement: {str(e)}', 'error')
+        # If the main try block fails, we still need to render the template
+        # but with empty data. However, individual try blocks above should handle most cases.
         return render_template('admin/dashboard.html', 
             pharmacies=[],
             pending_locations=[],

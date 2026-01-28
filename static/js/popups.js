@@ -91,12 +91,15 @@ function closePhonePopup() {
 }
 
 function loadActivePopups() {
+    console.log('Loading active popups...');
     fetch('/api/popups')
         .then(response => response.json())
         .then(popups => {
+            console.log('Popups loaded:', popups.length);
             popups.forEach(popup => {
                 const seenKey = `popup_seen_${popup.id}`;
                 if (popup.show_once && localStorage.getItem(seenKey)) {
+                    console.log('Popup already seen:', popup.id);
                     return;
                 }
                 showWelcomePopup(popup);
@@ -134,6 +137,10 @@ function showWelcomePopup(popup) {
         img.src = popup.image_url;
         img.alt = '';
         img.className = 'w-full h-full object-cover';
+        img.onerror = function() {
+            console.error('Failed to load popup image:', popup.image_url);
+            imageDiv.style.display = 'none';
+        };
         imageDiv.appendChild(img);
         container.appendChild(imageDiv);
     }

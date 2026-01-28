@@ -13,6 +13,7 @@ l'authentification, les routes et les gestionnaires d'erreurs.
 import os
 import logging
 import time
+import secrets
 from datetime import datetime
 from flask import Flask, jsonify, render_template, request, g
 from flask_login import current_user
@@ -75,7 +76,8 @@ def create_app():
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
         response.headers['Permissions-Policy'] = 'accelerometer=(), camera=(), microphone=(), geolocation=()'
         # CSP: Allow CDN for styles/scripts but block inline
-        response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.tailwindcss.com cdn.jsdelivr.net unpkg.com; style-src 'self' 'unsafe-inline' cdn.tailwindcss.com fonts.googleapis.com unpkg.com; img-src 'self' data: https:; font-src 'self' fonts.gstatic.com; connect-src 'self' tile.openstreetmap.org unpkg.com; frame-ancestors 'none';"
+        nonce = getattr(g, 'nonce', '')
+        response.headers['Content-Security-Policy'] = f"default-src 'self'; script-src 'self' 'nonce-{nonce}' cdn.tailwindcss.com cdn.jsdelivr.net unpkg.com; style-src 'self' 'unsafe-inline' cdn.tailwindcss.com fonts.googleapis.com unpkg.com; img-src 'self' data: https:; font-src 'self' fonts.gstatic.com; connect-src 'self' tile.openstreetmap.org unpkg.com; frame-ancestors 'none';"
         # Hide server info
         response.headers['Server'] = 'WebServer'
         return response
@@ -99,6 +101,7 @@ def register_request_logging(app):
     @app.before_request
     def before_request():
         g.start_time = time.time()
+        g.nonce = secrets.token_hex(16)
     
     @app.after_request
     def after_request(response):

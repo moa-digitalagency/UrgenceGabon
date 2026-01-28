@@ -195,7 +195,7 @@
         </form>
     </div>
 
-    <script>
+    <script nonce="{{ g.nonce }}">
         function toggleTriggerSettings() {
             const triggerType = document.querySelector('input[name="trigger_type"]:checked').value;
             const timeSettings = document.getElementById('time-settings');

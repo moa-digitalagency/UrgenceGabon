@@ -64,7 +64,13 @@ def approve_info_submission(id):
     submission = InfoSubmission.query.get_or_404(id)
     pharmacy = submission.pharmacy
     
-    if hasattr(pharmacy, submission.field_name):
+    allowed_fields = [
+        'nom', 'ville', 'quartier', 'telephone', 'bp',
+        'horaires', 'services', 'proprietaire',
+        'type_etablissement', 'categorie_emplacement'
+    ]
+
+    if submission.field_name in allowed_fields and hasattr(pharmacy, submission.field_name):
         setattr(pharmacy, submission.field_name, submission.proposed_value)
     
     submission.status = 'approved'

@@ -166,7 +166,6 @@ def admin_pharmacy_garde(id):
 
 @admin_bp.route('/pharmacy/<int:id>/toggle-garde', methods=['POST'])
 @login_required
-@csrf.exempt
 def admin_toggle_garde(id):
     try:
         pharmacy = PharmacyService.get_pharmacy_by_id(id)
@@ -180,7 +179,6 @@ def admin_toggle_garde(id):
 
 @admin_bp.route('/pharmacy/<int:id>/validate-location', methods=['POST'])
 @login_required
-@csrf.exempt
 def admin_validate_location(id):
     try:
         pharmacy = PharmacyService.get_pharmacy_by_id(id)
@@ -194,7 +192,6 @@ def admin_validate_location(id):
 
 @admin_bp.route('/pharmacy/<int:id>/invalidate-location', methods=['POST'])
 @login_required
-@csrf.exempt
 def admin_invalidate_location(id):
     try:
         pharmacy = PharmacyService.get_pharmacy_by_id(id)
@@ -208,7 +205,6 @@ def admin_invalidate_location(id):
 
 @admin_bp.route('/pharmacy/<int:id>/toggle-verified', methods=['POST'])
 @login_required
-@csrf.exempt
 def admin_toggle_verified(id):
     try:
         pharmacy = PharmacyService.get_pharmacy_by_id(id)
@@ -223,7 +219,6 @@ def admin_toggle_verified(id):
 
 @admin_bp.route('/pharmacy/<int:id>/update-coordinates', methods=['POST'])
 @login_required
-@csrf.exempt
 def admin_update_coordinates(id):
     pharmacy = PharmacyService.get_pharmacy_by_id(id)
     data = get_json_or_400()
@@ -244,7 +239,6 @@ def admin_update_coordinates(id):
 
 @admin_bp.route('/pharmacy/<int:id>/set-garde', methods=['POST'])
 @login_required
-@csrf.exempt
 def admin_set_garde(id):
     pharmacy = PharmacyService.get_pharmacy_by_id(id)
     data = get_json_or_400()

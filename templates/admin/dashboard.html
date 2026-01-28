@@ -14,6 +14,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Admin Dashboard - UrgenceGabon.com</title>
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -663,11 +664,11 @@
                                     <p class="text-sm text-blue-600 mt-2">Lat: {{ loc.latitude }}, Lng: {{ loc.longitude }}</p>
                                 </div>
                                 <div class="flex gap-2">
-                                    <form action="{{ url_for('admin.approve_location', id=loc.id) }}" method="POST">
+                                    <form action="{{ url_for('admin.approve_location_submission', id=loc.id) }}" method="POST">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700">Approuver</button>
                                     </form>
-                                    <form action="{{ url_for('admin.reject_location', id=loc.id) }}" method="POST">
+                                    <form action="{{ url_for('admin.reject_location_submission', id=loc.id) }}" method="POST">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit" class="px-4 py-2 bg-red-100 text-red-600 rounded-xl text-sm font-medium hover:bg-red-200">Rejeter</button>
                                     </form>
@@ -701,11 +702,11 @@
                                     <p class="text-sm text-amber-600 mt-2">Nouvelle valeur: {{ info.new_value }}</p>
                                 </div>
                                 <div class="flex gap-2">
-                                    <form action="{{ url_for('admin.approve_info', id=info.id) }}" method="POST">
+                                    <form action="{{ url_for('admin.approve_info_submission', id=info.id) }}" method="POST">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700">Approuver</button>
                                     </form>
-                                    <form action="{{ url_for('admin.reject_info', id=info.id) }}" method="POST">
+                                    <form action="{{ url_for('admin.reject_info_submission', id=info.id) }}" method="POST">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit" class="px-4 py-2 bg-red-100 text-red-600 rounded-xl text-sm font-medium hover:bg-red-200">Rejeter</button>
                                     </form>
@@ -1239,9 +1240,17 @@
             document.getElementById('gardeModal').classList.remove('flex');
         }
         
+        function fetchWithCSRF(url, options = {}) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const headers = options.headers || {};
+            headers['X-CSRFToken'] = csrfToken;
+            options.headers = headers;
+            return fetch(url, options);
+        }
+
         function toggleValidation(id, btn, current) {
             const endpoint = current ? '/admin/pharmacy/' + id + '/invalidate-location' : '/admin/pharmacy/' + id + '/validate-location';
-            fetch(endpoint, { method: 'POST' })
+            fetchWithCSRF(endpoint, { method: 'POST' })
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
@@ -1257,7 +1266,7 @@
             const action = current ? 'retirer la verification de' : 'marquer comme verifiee';
             if (!confirm('Voulez-vous vraiment ' + action + ' cette pharmacie ?')) return;
             
-            fetch('/admin/pharmacy/' + id + '/toggle-verified', { method: 'POST' })
+            fetchWithCSRF('/admin/pharmacy/' + id + '/toggle-verified', { method: 'POST' })
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
@@ -1270,7 +1279,7 @@
         function approveProposal(id) {
             if (!confirm('Valider cette pharmacie et l\'ajouter a la liste ?')) return;
             
-            fetch('/admin/pharmacy-proposal/' + id + '/approve', { method: 'POST' })
+            fetchWithCSRF('/admin/pharmacy-proposal/' + id + '/approve', { method: 'POST' })
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
@@ -1284,7 +1293,7 @@
         function rejectProposal(id) {
             if (!confirm('Rejeter cette proposition de pharmacie ?')) return;
             
-            fetch('/admin/pharmacy-proposal/' + id + '/reject', { method: 'POST' })
+            fetchWithCSRF('/admin/pharmacy-proposal/' + id + '/reject', { method: 'POST' })
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
@@ -1295,7 +1304,7 @@
         }
         
         function archiveSuggestion(id) {
-            fetch('/admin/suggestion/' + id + '/archive', { method: 'POST' })
+            fetchWithCSRF('/admin/suggestion/' + id + '/archive', { method: 'POST' })
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {

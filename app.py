@@ -16,11 +16,9 @@ import time
 from datetime import datetime
 from flask import Flask, jsonify, render_template, request, g
 from flask_login import current_user
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from extensions import db, login_manager, csrf
+from extensions import db, login_manager, csrf, limiter
 from routes import public_bp, admin_bp
 from security.auth import init_login_manager, create_default_admin
 
@@ -63,13 +61,10 @@ def create_app():
     init_login_manager(app)
     
     # Initialize rate limiter
-    limiter = Limiter(
-        app=app,
-        key_func=get_remote_address,
-        default_limits=["200 per day", "50 per hour"],
-        storage_uri="memory://"
+    limiter.init_app(
+        app,
+        default_limits=["200 per day", "50 per hour"]
     )
-    app.limiter = limiter
     
     # Add security headers
     @app.after_request

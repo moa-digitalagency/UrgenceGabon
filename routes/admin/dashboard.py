@@ -39,10 +39,8 @@ def safe_query(query_func, default=None):
 @login_required
 def admin_dashboard():
     try:
-        pharmacies = safe_query(
-            lambda: Pharmacy.query.order_by(Pharmacy.ville, Pharmacy.nom).all(),
-            []
-        )
+        # Don't use safe_query for the main pharmacies list so we can see the error if it fails
+        pharmacies = Pharmacy.query.order_by(Pharmacy.ville, Pharmacy.nom).all()
         
         # Debug: log pharmacy count
         logger.info(f"Dashboard loaded: {len(pharmacies)} pharmacies found")
@@ -304,6 +302,7 @@ def admin_dashboard():
         logger.error(f"Dashboard error: {e}")
         logger.error(f"Dashboard traceback: {traceback.format_exc()}")
         db.session.rollback()
+        # Include detailed error in flash message for debugging
         flash(f'Erreur lors du chargement: {str(e)}', 'error')
         return render_template('admin/dashboard.html', 
             pharmacies=[],

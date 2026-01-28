@@ -62,10 +62,7 @@ def create_app():
     init_login_manager(app)
     
     # Initialize rate limiter
-    limiter.init_app(
-        app,
-        default_limits=["200 per day", "50 per hour"]
-    )
+    limiter.init_app(app)
     
     # Add security headers
     @app.after_request

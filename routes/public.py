@@ -18,7 +18,7 @@ from models.pharmacy import Pharmacy
 from models.emergency_contact import EmergencyContact
 from models.site_settings import PopupMessage, SiteSettings
 from models.advertisement import Advertisement, AdSettings
-from extensions import db, csrf
+from extensions import db, csrf, limiter
 from datetime import datetime
 from sqlalchemy import func
 
@@ -398,6 +398,7 @@ def record_view(id):
 
 @public_bp.route('/api/pharmacy/<int:id>/submit-location', methods=['POST'])
 @csrf.exempt
+@limiter.limit("20 per hour")
 def submit_location(id):
     pharmacy = Pharmacy.query.get_or_404(id)
     data = get_json_or_400()
@@ -429,6 +430,7 @@ def submit_location(id):
 
 @public_bp.route('/api/pharmacy/<int:id>/submit-info', methods=['POST'])
 @csrf.exempt
+@limiter.limit("20 per hour")
 def submit_info(id):
     pharmacy = Pharmacy.query.get_or_404(id)
     data = get_json_or_400()
@@ -461,6 +463,7 @@ def submit_info(id):
 
 @public_bp.route('/api/suggestions', methods=['POST'])
 @csrf.exempt
+@limiter.limit("100 per hour")
 def submit_suggestion():  # Rate limited: 100/hour
     data = get_json_or_400()
     
@@ -490,6 +493,7 @@ def submit_suggestion():  # Rate limited: 100/hour
 
 @public_bp.route('/api/pharmacy-proposal', methods=['POST'])
 @csrf.exempt
+@limiter.limit("10 per hour")
 def submit_pharmacy_proposal():
     data = get_json_or_400()
     

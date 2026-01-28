@@ -14,6 +14,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from models.admin import Admin
 from models.activity_log import ActivityLog
 from routes.admin import admin_bp
+from extensions import limiter
 
 
 def get_client_ip():
@@ -21,6 +22,7 @@ def get_client_ip():
 
 
 @admin_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute", methods=['POST'])
 def admin_login():
     if current_user.is_authenticated:
         return redirect(url_for('admin.admin_dashboard'))

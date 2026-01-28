@@ -10,7 +10,7 @@ Ce fichier gère l'approbation/rejet des soumissions utilisateurs:
 localisations GPS, corrections d'info, suggestions et propositions de pharmacies.
 """
 
-from flask import jsonify
+from flask import jsonify, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from models.pharmacy import Pharmacy
 from models.submission import LocationSubmission, InfoSubmission, Suggestion, PharmacyProposal
@@ -23,7 +23,6 @@ import string
 
 @admin_bp.route('/location-submission/<int:id>/approve', methods=['POST'])
 @login_required
-@csrf.exempt
 def approve_location_submission(id):
     submission = LocationSubmission.query.get_or_404(id)
     pharmacy = submission.pharmacy
@@ -40,12 +39,12 @@ def approve_location_submission(id):
     
     db.session.commit()
     
-    return jsonify({'success': True})
+    flash('Localisation approuvée', 'success')
+    return redirect(url_for('admin.admin_dashboard') + '#locations')
 
 
 @admin_bp.route('/location-submission/<int:id>/reject', methods=['POST'])
 @login_required
-@csrf.exempt
 def reject_location_submission(id):
     submission = LocationSubmission.query.get_or_404(id)
     
@@ -55,12 +54,12 @@ def reject_location_submission(id):
     
     db.session.commit()
     
-    return jsonify({'success': True})
+    flash('Localisation rejetée', 'success')
+    return redirect(url_for('admin.admin_dashboard') + '#locations')
 
 
 @admin_bp.route('/info-submission/<int:id>/approve', methods=['POST'])
 @login_required
-@csrf.exempt
 def approve_info_submission(id):
     submission = InfoSubmission.query.get_or_404(id)
     pharmacy = submission.pharmacy
@@ -74,12 +73,12 @@ def approve_info_submission(id):
     
     db.session.commit()
     
-    return jsonify({'success': True})
+    flash('Correction approuvée', 'success')
+    return redirect(url_for('admin.admin_dashboard') + '#infos')
 
 
 @admin_bp.route('/info-submission/<int:id>/reject', methods=['POST'])
 @login_required
-@csrf.exempt
 def reject_info_submission(id):
     submission = InfoSubmission.query.get_or_404(id)
     
@@ -89,12 +88,12 @@ def reject_info_submission(id):
     
     db.session.commit()
     
-    return jsonify({'success': True})
+    flash('Correction rejetée', 'success')
+    return redirect(url_for('admin.admin_dashboard') + '#infos')
 
 
 @admin_bp.route('/suggestion/<int:id>/respond', methods=['POST'])
 @login_required
-@csrf.exempt
 def respond_suggestion(id):
     suggestion = Suggestion.query.get_or_404(id)
     data = get_json_or_400()
@@ -114,7 +113,6 @@ def respond_suggestion(id):
 
 @admin_bp.route('/suggestion/<int:id>/archive', methods=['POST'])
 @login_required
-@csrf.exempt
 def archive_suggestion(id):
     suggestion = Suggestion.query.get_or_404(id)
     
@@ -127,9 +125,20 @@ def archive_suggestion(id):
     return jsonify({'success': True})
 
 
+@admin_bp.route('/suggestion/<int:id>/mark-read', methods=['POST'])
+@login_required
+def mark_suggestion_read(id):
+    suggestion = Suggestion.query.get_or_404(id)
+    suggestion.status = 'resolved'
+    suggestion.reviewed_at = datetime.utcnow()
+    suggestion.reviewed_by_admin_id = current_user.id
+    db.session.commit()
+    flash('Suggestion marquée comme lue', 'success')
+    return redirect(url_for('admin.admin_dashboard') + '#suggestions')
+
+
 @admin_bp.route('/pharmacy-proposal/<int:id>/approve', methods=['POST'])
 @login_required
-@csrf.exempt
 def approve_pharmacy_proposal(id):
     proposal = PharmacyProposal.query.get_or_404(id)
     
@@ -166,7 +175,6 @@ def approve_pharmacy_proposal(id):
 
 @admin_bp.route('/pharmacy-proposal/<int:id>/reject', methods=['POST'])
 @login_required
-@csrf.exempt
 def reject_pharmacy_proposal(id):
     proposal = PharmacyProposal.query.get_or_404(id)
     

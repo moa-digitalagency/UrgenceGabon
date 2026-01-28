@@ -141,7 +141,6 @@ def edit_ad(id):
 
 @admin_bp.route('/ad/<int:id>/toggle', methods=['POST'])
 @login_required
-@csrf.exempt
 def toggle_ad(id):
     try:
         ad = Advertisement.query.get_or_404(id)

@@ -21,7 +21,7 @@
         body { font-family: 'Inter', sans-serif; }
         .log-row:hover { background-color: #f9fafb; }
     </style>
-    <script>
+    <script nonce="{{ g.nonce }}">
         function toggleDetails(id) {
             const row = document.getElementById('details-' + id);
             if (row) {

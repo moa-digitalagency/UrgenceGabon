@@ -196,7 +196,6 @@ def edit_popup(id):
 
 @admin_bp.route('/popup/<int:id>/toggle', methods=['POST'])
 @login_required
-@csrf.exempt
 def toggle_popup(id):
     try:
         popup = PopupMessage.query.get_or_404(id)

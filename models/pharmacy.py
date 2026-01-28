@@ -62,7 +62,9 @@ class Pharmacy(db.Model):
             return False
         if self.garde_end_date is None:
             return True
-        return datetime.utcnow() <= self.garde_end_date
+        # Gabon is UTC+1
+        gabon_now = datetime.utcnow() + timedelta(hours=1)
+        return gabon_now <= self.garde_end_date
     
     def to_dict(self):
         return {

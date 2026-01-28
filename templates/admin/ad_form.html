@@ -160,7 +160,7 @@
         </form>
     </div>
 
-    <script>
+    <script nonce="{{ g.nonce }}">
         function toggleMediaType(type) {
             document.getElementById('image-section').classList.toggle('hidden', type !== 'image');
             document.getElementById('video-section').classList.toggle('hidden', type !== 'video');

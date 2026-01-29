@@ -20,4 +20,7 @@ wheels/
 .DS_Store
 *.log
 attached_assets/*.sql
-attached_assets/*.sql
+
+# Sensitive / Local
+.env
+instance/

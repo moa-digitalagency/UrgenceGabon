@@ -134,6 +134,72 @@
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                    Configuration PWA (App Mobile)
+                </h2>
+
+                <!-- Enable Switch -->
+                <div class="mb-6 flex items-center">
+                    <label class="flex items-center cursor-pointer">
+                        <div class="relative">
+                            <input type="checkbox" name="pwa_enabled" class="sr-only peer" {% if settings.get('pwa_enabled') == 'true' %}checked{% endif %}>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            <span class="ml-3 text-sm font-medium text-gray-700">Activer la Progressive Web App</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div id="pwa-settings-container" class="{% if settings.get('pwa_enabled') != 'true' %}hidden{% endif %} space-y-6 border-t pt-6">
+                    <!-- Mode Selection -->
+                    <div>
+                        <span class="block text-sm font-medium text-gray-700 mb-2">Mode d'affichage</span>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <label class="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="radio" name="pwa_mode" value="default" {% if settings.get('pwa_mode', 'default') == 'default' %}checked{% endif %} class="text-emerald-600 focus:ring-emerald-500">
+                                <span class="text-sm text-gray-700">Par défaut (Utilise Favicon et Titre du site)</span>
+                            </label>
+                            <label class="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="radio" name="pwa_mode" value="custom" {% if settings.get('pwa_mode') == 'custom' %}checked{% endif %} class="text-emerald-600 focus:ring-emerald-500">
+                                <span class="text-sm text-gray-700">Personnalisé</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Custom Fields -->
+                    <div id="pwa-custom-fields" class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg border border-gray-100 {% if settings.get('pwa_mode') != 'custom' %}hidden{% endif %}">
+                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nom de l'application</label>
+                            <input type="text" name="pwa_custom_name" value="{{ settings.get('pwa_custom_name', '') }}"
+                                   placeholder="Ex: Ma Pharmacie"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                            <p class="text-xs text-gray-500 mt-1">Nom qui apparaîtra sous l'icône sur l'écran d'accueil</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Icône de l'application</label>
+                            {% if settings.get('pwa_custom_icon_filename') %}
+                            <div class="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg mb-2">
+                                <img src="/static/uploads/settings/{{ settings.get('pwa_custom_icon_filename') }}" alt="Icône PWA" class="w-12 h-12 object-contain rounded">
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-600">Icône actuelle</p>
+                                    <label class="flex items-center gap-2 mt-1 cursor-pointer">
+                                        <input type="checkbox" name="remove_pwa_custom_icon" class="w-4 h-4 text-red-600 rounded">
+                                        <span class="text-sm text-red-600">Supprimer</span>
+                                    </label>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <input type="file" name="pwa_custom_icon_file" accept="image/*"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white">
+                            <p class="text-xs text-gray-500 mt-1">Recommandé : PNG, 512x512 pixels. Fond transparent si possible.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
@@ -210,5 +276,46 @@
             </div>
         </form>
     </div>
+
+    <script nonce="{{ g.nonce }}">
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Settings script loaded');
+            const pwaCheckbox = document.querySelector('input[name="pwa_enabled"]');
+            const pwaContainer = document.getElementById('pwa-settings-container');
+            const modeRadios = document.querySelectorAll('input[name="pwa_mode"]');
+            const customFields = document.getElementById('pwa-custom-fields');
+
+            function togglePwaSettings(enabled) {
+                if (enabled) {
+                    pwaContainer.classList.remove('hidden');
+                } else {
+                    pwaContainer.classList.add('hidden');
+                }
+            }
+
+            function togglePwaCustomMode(isCustom) {
+                if (isCustom) {
+                    customFields.classList.remove('hidden');
+                } else {
+                    customFields.classList.add('hidden');
+                }
+            }
+
+            if (pwaCheckbox) {
+                pwaCheckbox.addEventListener('change', function() {
+                    console.log('Checkbox changed', this.checked);
+                    togglePwaSettings(this.checked);
+                });
+            } else {
+                console.error('PWA Checkbox not found');
+            }
+
+            modeRadios.forEach(function(radio) {
+                radio.addEventListener('change', function() {
+                    togglePwaCustomMode(this.value === 'custom');
+                });
+            });
+        });
+    </script>
 </body>
 </html>

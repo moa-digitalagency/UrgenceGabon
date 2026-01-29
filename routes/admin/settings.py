@@ -33,13 +33,17 @@ def site_settings():
                 'twitter_card', 'twitter_handle', 'twitter_title', 'twitter_description',
                 'canonical_url', 'google_site_verification', 'bing_site_verification',
                 'robots_txt', 'structured_data',
-                'google_analytics_id', 'header_code', 'footer_code'
+                'google_analytics_id', 'header_code', 'footer_code',
+                'pwa_mode', 'pwa_custom_name'
             ]
             
             for key in settings_keys:
                 value = request.form.get(key, '')
                 SiteSettings.set(key, value)
             
+            # Checkbox handling
+            SiteSettings.set('pwa_enabled', 'true' if request.form.get('pwa_enabled') == 'on' else 'false')
+
             if request.form.get('remove_logo') == 'on':
                 old_filename = SiteSettings.get('site_logo_filename')
                 if old_filename:
@@ -57,6 +61,12 @@ def site_settings():
                 if old_filename:
                     safe_delete_upload(old_filename, 'settings')
                     SiteSettings.set('og_image_filename', '')
+
+            if request.form.get('remove_pwa_custom_icon') == 'on':
+                old_filename = SiteSettings.get('pwa_custom_icon_filename')
+                if old_filename:
+                    safe_delete_upload(old_filename, 'settings')
+                    SiteSettings.set('pwa_custom_icon_filename', '')
             
             if 'site_logo_file' in request.files:
                 file = request.files['site_logo_file']
@@ -87,6 +97,16 @@ def site_settings():
                     new_filename = save_upload_file(file, 'settings', 'og_image_')
                     if new_filename:
                         SiteSettings.set('og_image_filename', new_filename)
+
+            if 'pwa_custom_icon_file' in request.files:
+                file = request.files['pwa_custom_icon_file']
+                if file and file.filename and allowed_file(file.filename):
+                    old_filename = SiteSettings.get('pwa_custom_icon_filename')
+                    if old_filename:
+                        safe_delete_upload(old_filename, 'settings')
+                    new_filename = save_upload_file(file, 'settings', 'pwa_icon_')
+                    if new_filename:
+                        SiteSettings.set('pwa_custom_icon_filename', new_filename)
             
             flash('Paramètres enregistrés avec succès', 'success')
             return redirect(url_for('admin.site_settings'))

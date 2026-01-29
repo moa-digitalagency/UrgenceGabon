@@ -13,10 +13,15 @@ Préserve TOUTES les données existantes - migration sécurisée sans perte de d
 
 import os
 import sys
+import logging
 from pathlib import Path
 
 from dotenv import load_dotenv
 from sqlalchemy import inspect, text
+
+# Configuration du logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 env_file = Path('.env')
 if env_file.exists():
@@ -65,10 +70,9 @@ def get_existing_tables():
 def check_table_data_integrity():
     """Vérifie l'intégrité des données existantes et affiche un rapport."""
     with app.app_context():
-        inspector = inspect(db.engine)
         existing_tables = get_existing_tables()
         
-        print("\n📊 Vérification des données existantes:")
+        logger.info("Vérification des données existantes:")
         
         total_tables = 0
         tables_with_data = 0
@@ -80,18 +84,18 @@ def check_table_data_integrity():
                 row_count = result.scalar() or 0
                 
                 if row_count > 0:
-                    print(f"  ✓ {table_name}: {row_count} lignes")
+                    logger.info(f"  ✓ {table_name}: {row_count} lignes")
                     tables_with_data += 1
                 else:
-                    print(f"  ✓ {table_name}: vide")
+                    logger.info(f"  ✓ {table_name}: vide")
                 total_tables += 1
             except Exception as e:
-                print(f"  ⚠️  {table_name}: impossible à lire ({str(e)[:40]})")
+                logger.warning(f"  ⚠️  {table_name}: impossible à lire ({str(e)[:40]})")
         
         if total_tables == 0:
-            print("  ℹ️  Base de données vide (première initialisation)")
+            logger.info("  ℹ️  Base de données vide (première initialisation)")
         elif tables_with_data > 0:
-            print(f"\n✅ {tables_with_data}/{total_tables} table(s) contiennent des données - Elles seront préservées")
+            logger.info(f"{tables_with_data}/{total_tables} table(s) contiennent des données - Elles seront préservées")
         
         return tables_with_data > 0
 
@@ -106,28 +110,28 @@ def check_and_create_missing_tables():
         missing_tables = required_table_names - existing_tables
         
         if not missing_tables:
-            print("\n✅ Toutes les tables requises existent!")
+            logger.info("Toutes les tables requises existent!")
             return True
         
-        print(f"\n⚠️  {len(missing_tables)} table(s) manquante(s):")
+        logger.warning(f"{len(missing_tables)} table(s) manquante(s):")
         for table in sorted(missing_tables):
-            print(f"  - {table}")
+            logger.warning(f"  - {table}")
         
-        print("\n📝 Création des tables manquantes (les données existantes sont préservées)...")
+        logger.info("Création des tables manquantes (les données existantes sont préservées)...")
         success_count = 0
         for table_name in sorted(missing_tables):
             try:
                 models[table_name].__table__.create(db.engine, checkfirst=True)
-                print(f"  ✓ Créée: {table_name}")
+                logger.info(f"  ✓ Créée: {table_name}")
                 success_count += 1
             except Exception as e:
-                print(f"  ✗ Erreur pour {table_name}: {str(e)[:60]}")
+                logger.error(f"  ✗ Erreur pour {table_name}: {str(e)[:60]}")
                 # Continuer même en cas d'erreur
         
         if success_count == len(missing_tables):
             return True
         else:
-            print(f"⚠️  {len(missing_tables) - success_count} table(s) n'ont pas pu être créées")
+            logger.error(f"{len(missing_tables) - success_count} table(s) n'ont pas pu être créées")
             return True  # Continuer quand même
 
 
@@ -138,32 +142,33 @@ def check_and_add_missing_columns():
         existing_tables = get_existing_tables()
         inspector = inspect(db.engine)
         
-        print("\n🔍 Vérification des colonnes existantes:")
+        logger.info("Vérification des colonnes existantes:")
         
         schema_issues = []
         tables_ok = 0
         
         for table_name, model_class in sorted(models.items()):
             if table_name not in existing_tables:
-                print(f"  ℹ️  {table_name}: table à créer")
+                logger.info(f"  ℹ️  {table_name}: table à créer")
                 continue
             
+            # Utilisation de set pour une comparaison rapide
             db_columns = {col['name'] for col in inspector.get_columns(table_name)}
             model_columns = {col.name for col in model_class.__table__.columns}
             
             missing_cols = model_columns - db_columns
             if missing_cols:
                 schema_issues.append((table_name, missing_cols, model_class))
-                print(f"  ⚠️  {table_name}: {len(missing_cols)} colonne(s) manquante(s) {sorted(missing_cols)}")
+                logger.warning(f"  ⚠️  {table_name}: {len(missing_cols)} colonne(s) manquante(s) {sorted(missing_cols)}")
             else:
-                print(f"  ✓ {table_name}: schéma complet")
+                logger.info(f"  ✓ {table_name}: schéma complet")
                 tables_ok += 1
         
         if not schema_issues:
-            print(f"\n✅ Tous les schémas sont à jour! ({tables_ok} table(s) vérifiée(s))")
+            logger.info(f"Tous les schémas sont à jour! ({tables_ok} table(s) vérifiée(s))")
             return True
         
-        print(f"\n🔧 Ajout des colonnes manquantes (les données existantes sont préservées)...")
+        logger.info("Ajout des colonnes manquantes (les données existantes sont préservées)...")
         
         for table_name, missing_cols, model_class in schema_issues:
             for col_name in sorted(missing_cols):
@@ -171,20 +176,24 @@ def check_and_add_missing_columns():
                     col = model_class.__table__.columns[col_name]
                     col_type = str(col.type)
                     
+                    # Sécurisation des noms de colonnes (bien que provenant du modèle)
+                    safe_table = table_name # SQLAlchemy models have safe table names
+                    safe_col = col_name # SQLAlchemy columns have safe names
+
                     # Construire la clause ALTER TABLE avec valeur par défaut si nécessaire
                     if col.nullable:
-                        alter_sql = f"ALTER TABLE {table_name} ADD COLUMN {col_name} {col_type}"
+                        alter_sql = f'ALTER TABLE "{safe_table}" ADD COLUMN "{safe_col}" {col_type}'
                     else:
                         # Pour les colonnes non-nullables, utiliser une valeur par défaut appropriée
                         default_val = get_default_value_for_type(col_type)
-                        alter_sql = f"ALTER TABLE {table_name} ADD COLUMN {col_name} {col_type} DEFAULT {default_val}"
+                        alter_sql = f'ALTER TABLE "{safe_table}" ADD COLUMN "{safe_col}" {col_type} DEFAULT {default_val}'
                     
                     db.session.execute(text(alter_sql))
                     db.session.commit()
-                    print(f"  ✓ Ajoutée colonne: {table_name}.{col_name}")
+                    logger.info(f"  ✓ Ajoutée colonne: {table_name}.{col_name}")
                 except Exception as e:
                     db.session.rollback()
-                    print(f"  ⚠️  {table_name}.{col_name}: {str(e)[:50]} (non-critique, continuant...)")
+                    logger.error(f"  ⚠️  {table_name}.{col_name}: {str(e)[:100]} (non-critique, continuant...)")
                     # Continuer même en cas d'erreur
         
         return True
@@ -210,9 +219,9 @@ def get_default_value_for_type(col_type):
 
 def init_database():
     """Initialise complètement la base de données - crée toutes les tables si nécessaire."""
-    print("\n" + "=" * 90)
-    print("INITIALISATION ET VÉRIFICATION - BASE DE DONNÉES")
-    print("=" * 90)
+    logger.info("=" * 60)
+    logger.info("INITIALISATION ET VÉRIFICATION - BASE DE DONNÉES")
+    logger.info("=" * 60)
     
     with app.app_context():
         # Importer tous les modèles pour les enregistrer avec SQLAlchemy
@@ -225,14 +234,14 @@ def init_database():
         from models.activity_log import ActivityLog
         
         existing_tables = get_existing_tables()
-        print(f"\n📋 État actuel: {len(existing_tables)} table(s) existante(s)")
+        logger.info(f"État actuel: {len(existing_tables)} table(s) existante(s)")
         
         # Créer toutes les tables manquantes (checkfirst=True préserve les données)
-        print("\n🔨 Création/vérification des tables...")
+        logger.info("Création/vérification des tables...")
         db.create_all()
         
         new_existing_tables = get_existing_tables()
-        print(f"✅ Toutes les tables requises existent! ({len(new_existing_tables)} table(s))")
+        logger.info(f"Toutes les tables requises existent! ({len(new_existing_tables)} table(s))")
 
 
 def init_admin_from_env():
@@ -244,25 +253,25 @@ def init_admin_from_env():
         password = os.environ.get('ADMIN_PASSWORD')
         
         if not password:
-            print("\n⚠️  ADMIN_PASSWORD non configuré - admin ne sera pas initialisé.")
-            print("   Définissez ADMIN_PASSWORD pour créer/mettre à jour le compte admin.")
+            logger.warning("ADMIN_PASSWORD non configuré - admin ne sera pas initialisé.")
+            logger.warning("   Définissez ADMIN_PASSWORD pour créer/mettre à jour le compte admin.")
             return False
         
         existing_admin = Admin.query.filter_by(username=username).first()
         if existing_admin:
             existing_admin.set_password(password)
             db.session.commit()
-            print(f"\n✓ Admin '{username}' - mot de passe mis à jour")
+            logger.info(f"Admin '{username}' - mot de passe mis à jour")
         else:
             try:
                 admin = Admin(username=username)
                 admin.set_password(password)
                 db.session.add(admin)
                 db.session.commit()
-                print(f"\n✓ Admin '{username}' - créé avec succès")
+                logger.info(f"Admin '{username}' - créé avec succès")
             except Exception as e:
                 db.session.rollback()
-                print(f"\n⚠️  Admin '{username}' - impossible de créer ({str(e)[:50]})")
+                logger.error(f"Admin '{username}' - impossible de créer ({str(e)[:50]})")
         
         return True
 
@@ -295,9 +304,9 @@ def init_default_seo_settings():
                     pass  # Continuer même en cas d'erreur
         
         if created_count > 0:
-            print(f"\n✓ {created_count} paramètre(s) SEO créé(s)")
+            logger.info(f"{created_count} paramètre(s) SEO créé(s)")
         else:
-            print("\n✓ Les paramètres SEO existaient déjà")
+            logger.info("Les paramètres SEO existaient déjà")
 
 
 def init_default_pwa_settings():
@@ -323,9 +332,9 @@ def init_default_pwa_settings():
                     pass
 
         if created_count > 0:
-            print(f"\n✓ {created_count} paramètre(s) PWA créé(s)")
+            logger.info(f"{created_count} paramètre(s) PWA créé(s)")
         else:
-            print("\n✓ Les paramètres PWA existaient déjà")
+            logger.info("Les paramètres PWA existaient déjà")
 
 
 if __name__ == '__main__':
@@ -347,16 +356,16 @@ if __name__ == '__main__':
         init_default_seo_settings()
         init_default_pwa_settings()
         
-        print("\n" + "=" * 90)
+        logger.info("=" * 60)
         if has_data:
-            print("✅ Migration terminée - Données existantes préservées!")
+            logger.info("Migration terminée - Données existantes préservées!")
         else:
-            print("✅ Initialisation terminée - Base de données prête!")
-        print("=" * 90)
+            logger.info("Initialisation terminée - Base de données prête!")
+        logger.info("=" * 60)
         
         sys.exit(0)
     except Exception as e:
-        print(f"\n❌ Erreur lors de la migration: {e}")
+        logger.error(f"Erreur lors de la migration: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

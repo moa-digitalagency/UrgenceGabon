@@ -299,6 +299,78 @@ def robots():
     return Response(robots_txt, mimetype='text/plain')
 
 
+@public_bp.route('/manifest.json')
+def manifest():
+    """Serve dynamic manifest.json based on PWA settings."""
+    pwa_enabled = SiteSettings.get('pwa_enabled') == 'true'
+
+    if not pwa_enabled:
+        return jsonify({}), 404
+
+    mode = SiteSettings.get('pwa_mode', 'default')
+
+    # Default values
+    name = SiteSettings.get('site_name', 'UrgenceGabon.com')
+    short_name = name
+
+    # Icons list
+    icons = []
+
+    # Handle Custom Mode
+    if mode == 'custom':
+        custom_name = SiteSettings.get('pwa_custom_name')
+        if custom_name:
+            name = custom_name
+            short_name = custom_name
+
+        custom_icon = SiteSettings.get('pwa_custom_icon_filename')
+        if custom_icon:
+            # We assume the uploaded icon is high res
+            icons.append({
+                "src": f"/static/uploads/settings/{custom_icon}",
+                "sizes": "192x192 512x512",
+                "type": "image/png"
+            })
+
+    # Fallback/Default Icons if no custom icon or mode is default
+    if not icons:
+        # Try to use site logo if available for larger icon
+        logo = SiteSettings.get('site_logo_filename')
+        if logo:
+            icons.append({
+                "src": f"/static/uploads/settings/{logo}",
+                "sizes": "192x192 512x512",
+                "type": "image/png"
+            })
+
+        # Use favicon
+        favicon = SiteSettings.get('site_favicon_filename')
+        if favicon:
+             icons.append({
+                "src": f"/static/uploads/settings/{favicon}",
+                "sizes": "64x64 32x32",
+                "type": "image/png"
+            })
+        else:
+             icons.append({
+                "src": "/static/favicon.svg",
+                "sizes": "any",
+                "type": "image/svg+xml"
+            })
+
+    # Basic manifest structure
+    manifest_data = {
+        "name": name,
+        "short_name": short_name,
+        "start_url": "/",
+        "display": "standalone",
+        "background_color": "#ffffff",
+        "theme_color": "#059669", # Primary-600
+        "icons": icons,
+        "orientation": "portrait-primary"
+    }
+
+    return jsonify(manifest_data)
 
 
 @public_bp.route('/')
@@ -336,6 +408,8 @@ def index():
     google_site_verification = SiteSettings.get('google_site_verification', '')
     structured_data = SiteSettings.get('structured_data', '')
     
+    pwa_enabled = SiteSettings.get('pwa_enabled') == 'true'
+
     return render_template('index.html', 
                           villes=villes, 
                           total_pharmacies=total_pharmacies,
@@ -360,7 +434,8 @@ def index():
                           twitter_description=twitter_description,
                           canonical_url=canonical_url,
                           google_site_verification=google_site_verification,
-                          structured_data=Markup(structured_data) if structured_data else '')
+                          structured_data=Markup(structured_data) if structured_data else '',
+                          pwa_enabled=pwa_enabled)
 
 
 @public_bp.route('/api/pharmacies')

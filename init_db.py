@@ -300,6 +300,34 @@ def init_default_seo_settings():
             print("\n✓ Les paramètres SEO existaient déjà")
 
 
+def init_default_pwa_settings():
+    """Initialise les paramètres PWA par défaut s'ils ne sont pas présents."""
+    with app.app_context():
+        from models.site_settings import SiteSettings
+
+        defaults = {
+            'pwa_enabled': 'false',
+            'pwa_mode': 'default',
+            'pwa_custom_name': '',
+            'pwa_custom_icon_filename': '',
+        }
+
+        created_count = 0
+        for key, value in defaults.items():
+            existing = SiteSettings.query.filter_by(key=key).first()
+            if not existing:
+                try:
+                    SiteSettings.set(key, value)
+                    created_count += 1
+                except Exception:
+                    pass
+
+        if created_count > 0:
+            print(f"\n✓ {created_count} paramètre(s) PWA créé(s)")
+        else:
+            print("\n✓ Les paramètres PWA existaient déjà")
+
+
 if __name__ == '__main__':
     try:
         # Étape 1: Initialiser les tables
@@ -317,6 +345,7 @@ if __name__ == '__main__':
         # Étape 5: Initialiser l'admin et les paramètres
         init_admin_from_env()
         init_default_seo_settings()
+        init_default_pwa_settings()
         
         print("\n" + "=" * 90)
         if has_data:

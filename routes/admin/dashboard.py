@@ -11,7 +11,7 @@ graphiques de vues et activités récentes.
 """
 
 import logging
-from flask import render_template, flash
+from flask import render_template, flash, request
 from flask_login import login_required
 from models.pharmacy import Pharmacy
 from models.submission import LocationSubmission, InfoSubmission, PharmacyView, Suggestion, PharmacyProposal, PageInteraction
@@ -40,18 +40,49 @@ def safe_query(query_func, default=None):
 def admin_dashboard():
     # Initialize variables with defaults
     pharmacies = []
+    garde_pharmacies = []
+    total_pharmacies_count = 0
+    garde_pharmacies_count = 0
+    gps_pharmacies_count = 0
+    validated_gps_count = 0
+    verified_pharmacies_count = 0
 
     try:
+        # Get query parameters
+        page = request.args.get('page', 1, type=int)
+        search = request.args.get('q', '')
+
+        # Calculate stats using efficient count queries
+        total_pharmacies_count = safe_query(lambda: Pharmacy.query.count(), 0)
+        garde_pharmacies_count = safe_query(lambda: Pharmacy.query.filter_by(is_garde=True).count(), 0)
+        gps_pharmacies_count = safe_query(lambda: Pharmacy.query.filter(Pharmacy.latitude.isnot(None), Pharmacy.longitude.isnot(None)).count(), 0)
+        validated_gps_count = safe_query(lambda: Pharmacy.query.filter_by(location_validated=True).count(), 0)
+        verified_pharmacies_count = safe_query(lambda: Pharmacy.query.filter_by(is_verified=True).count(), 0)
+
+        # Get garde pharmacies separately for the specific tab
+        garde_pharmacies = safe_query(lambda: Pharmacy.query.filter_by(is_garde=True).order_by(Pharmacy.ville, Pharmacy.nom).all(), [])
+
+        # Build main query with pagination and search
+        query = Pharmacy.query
+
+        if search:
+            search_term = f"%{search}%"
+            query = query.filter(
+                (Pharmacy.nom.ilike(search_term)) |
+                (Pharmacy.ville.ilike(search_term))
+            )
+
         # Don't use safe_query for the main pharmacies list so we can see the error if it fails
-        pharmacies = Pharmacy.query.order_by(Pharmacy.ville, Pharmacy.nom).all()
+        pharmacies = query.order_by(Pharmacy.ville, Pharmacy.nom).paginate(page=page, per_page=20, error_out=False)
+
         # Debug: log pharmacy count
-        logger.info(f"Dashboard loaded: {len(pharmacies)} pharmacies found")
+        logger.info(f"Dashboard loaded: {total_pharmacies_count} total pharmacies, page {page}")
     except Exception as e:
         import traceback
         logger.error(f"Error loading pharmacies: {e}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         flash(f'Erreur lors du chargement des pharmacies: {str(e)}', 'error')
-        pharmacies = []
+        pharmacies = None
 
     try:
         pending_locations = safe_query(
@@ -227,6 +258,12 @@ def admin_dashboard():
         
         return render_template('admin/dashboard.html', 
             pharmacies=pharmacies,
+            garde_pharmacies=garde_pharmacies,
+            total_pharmacies_count=total_pharmacies_count,
+            garde_pharmacies_count=garde_pharmacies_count,
+            gps_pharmacies_count=gps_pharmacies_count,
+            validated_gps_count=validated_gps_count,
+            verified_pharmacies_count=verified_pharmacies_count,
             pending_locations=pending_locations,
             pending_infos=pending_infos,
             pending_suggestions=pending_suggestions,
@@ -269,7 +306,13 @@ def admin_dashboard():
         # If the main try block fails, we still need to render the template
         # but with empty data. However, individual try blocks above should handle most cases.
         return render_template('admin/dashboard.html', 
-            pharmacies=[],
+            pharmacies=None,
+            garde_pharmacies=[],
+            total_pharmacies_count=0,
+            garde_pharmacies_count=0,
+            gps_pharmacies_count=0,
+            validated_gps_count=0,
+            verified_pharmacies_count=0,
             pending_locations=[],
             pending_infos=[],
             pending_suggestions=[],

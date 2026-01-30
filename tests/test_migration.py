@@ -7,6 +7,12 @@ from sqlalchemy import text, inspect
 # Add root directory to path to import app and init_db
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Set env vars BEFORE importing app to avoid RuntimeError
+os.environ['DATABASE_URL'] = 'sqlite:///migration_test.db'
+os.environ['SESSION_SECRET'] = 'test'
+os.environ['FLASK_ENV'] = 'testing'
+os.environ['USE_HTTPS'] = 'false'
+
 from app import create_app
 from extensions import db
 import init_db
@@ -14,8 +20,7 @@ import init_db
 # Configure test app
 @pytest.fixture
 def app():
-    os.environ['DATABASE_URL'] = 'sqlite:///migration_test.db'
-    os.environ['SESSION_SECRET'] = 'test'
+    # Environment variables are already set above
     app = create_app()
     app.config['TESTING'] = True
 

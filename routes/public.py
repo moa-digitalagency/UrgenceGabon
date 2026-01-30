@@ -302,15 +302,16 @@ def robots():
 @public_bp.route('/manifest.json')
 def manifest():
     """Serve dynamic manifest.json based on PWA settings."""
-    pwa_enabled = SiteSettings.get('pwa_enabled') == 'true'
+    settings = SiteSettings.get_all()
+    pwa_enabled = settings.get('pwa_enabled') == 'true'
 
     if not pwa_enabled:
         return jsonify({}), 404
 
-    mode = SiteSettings.get('pwa_mode', 'default')
+    mode = settings.get('pwa_mode', 'default')
 
     # Default values
-    name = SiteSettings.get('site_name', 'UrgenceGabon.com')
+    name = settings.get('site_name', 'UrgenceGabon.com')
     short_name = name
 
     # Icons list
@@ -318,12 +319,12 @@ def manifest():
 
     # Handle Custom Mode
     if mode == 'custom':
-        custom_name = SiteSettings.get('pwa_custom_name')
+        custom_name = settings.get('pwa_custom_name')
         if custom_name:
             name = custom_name
             short_name = custom_name
 
-        custom_icon = SiteSettings.get('pwa_custom_icon_filename')
+        custom_icon = settings.get('pwa_custom_icon_filename')
         if custom_icon:
             # We assume the uploaded icon is high res
             icons.append({
@@ -335,7 +336,7 @@ def manifest():
     # Fallback/Default Icons if no custom icon or mode is default
     if not icons:
         # Try to use site logo if available for larger icon
-        logo = SiteSettings.get('site_logo_filename')
+        logo = settings.get('site_logo_filename')
         if logo:
             icons.append({
                 "src": f"/static/uploads/settings/{logo}",
@@ -344,7 +345,7 @@ def manifest():
             })
 
         # Use favicon
-        favicon = SiteSettings.get('site_favicon_filename')
+        favicon = settings.get('site_favicon_filename')
         if favicon:
              icons.append({
                 "src": f"/static/uploads/settings/{favicon}",
@@ -387,28 +388,37 @@ def index():
             contacts_by_city[contact.ville] = []
         contacts_by_city[contact.ville].append(contact)
     
-    header_code = SiteSettings.get('header_code', '')
-    footer_code = SiteSettings.get('footer_code', '')
-    favicon_url = SiteSettings.get_favicon_url()
-    logo_url = SiteSettings.get_logo_url()
-    og_image_url = SiteSettings.get_og_image_url()
-    site_name = SiteSettings.get('site_name', 'UrgenceGabon.com')
-    og_title = SiteSettings.get('og_title', 'UrgenceGabon.com - Trouvez votre pharmacie')
-    og_description = SiteSettings.get('og_description', 'Annuaire complet des pharmacies au Gabon')
-    og_type = SiteSettings.get('og_type', 'website')
-    og_locale = SiteSettings.get('og_locale', 'fr_FR')
-    meta_description = SiteSettings.get('meta_description', og_description)
-    meta_keywords = SiteSettings.get('meta_keywords', 'pharmacie gabon, pharmacie garde, urgence gabon')
-    meta_author = SiteSettings.get('meta_author', 'MOA Digital Agency LLC')
-    twitter_card = SiteSettings.get('twitter_card', 'summary_large_image')
-    twitter_handle = SiteSettings.get('twitter_handle', '')
-    twitter_title = SiteSettings.get('twitter_title', og_title)
-    twitter_description = SiteSettings.get('twitter_description', og_description)
-    canonical_url = SiteSettings.get('canonical_url', '')
-    google_site_verification = SiteSettings.get('google_site_verification', '')
-    structured_data = SiteSettings.get('structured_data', '')
+    settings = SiteSettings.get_all()
     
-    pwa_enabled = SiteSettings.get('pwa_enabled') == 'true'
+    header_code = settings.get('header_code', '')
+    footer_code = settings.get('footer_code', '')
+
+    favicon_filename = settings.get('site_favicon_filename')
+    favicon_url = f'/static/uploads/settings/{favicon_filename}' if favicon_filename else '/static/favicon.svg'
+
+    logo_filename = settings.get('site_logo_filename')
+    logo_url = f'/static/uploads/settings/{logo_filename}' if logo_filename else None
+
+    og_image_filename = settings.get('og_image_filename')
+    og_image_url = f'/static/uploads/settings/{og_image_filename}' if og_image_filename else None
+
+    site_name = settings.get('site_name', 'UrgenceGabon.com')
+    og_title = settings.get('og_title', 'UrgenceGabon.com - Trouvez votre pharmacie')
+    og_description = settings.get('og_description', 'Annuaire complet des pharmacies au Gabon')
+    og_type = settings.get('og_type', 'website')
+    og_locale = settings.get('og_locale', 'fr_FR')
+    meta_description = settings.get('meta_description', og_description)
+    meta_keywords = settings.get('meta_keywords', 'pharmacie gabon, pharmacie garde, urgence gabon')
+    meta_author = settings.get('meta_author', 'MOA Digital Agency LLC')
+    twitter_card = settings.get('twitter_card', 'summary_large_image')
+    twitter_handle = settings.get('twitter_handle', '')
+    twitter_title = settings.get('twitter_title', og_title)
+    twitter_description = settings.get('twitter_description', og_description)
+    canonical_url = settings.get('canonical_url', '')
+    google_site_verification = settings.get('google_site_verification', '')
+    structured_data = settings.get('structured_data', '')
+
+    pwa_enabled = settings.get('pwa_enabled') == 'true'
 
     return render_template('index.html', 
                           villes=villes, 

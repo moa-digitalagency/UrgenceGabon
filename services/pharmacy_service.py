@@ -120,21 +120,24 @@ class PharmacyService:
     
     @staticmethod
     def get_stats():
-        total = Pharmacy.query.count()
-        garde = Pharmacy.query.filter(Pharmacy.is_garde == True).count()
-        gare = Pharmacy.query.filter(Pharmacy.categorie_emplacement == 'gare').count()
-        validated = Pharmacy.query.filter(Pharmacy.location_validated == True).count()
-        
+        # Optimization: Perform aggregation in a single query
+        stats = db.session.query(
+            db.func.count(Pharmacy.id).label('total'),
+            db.func.count(db.case((Pharmacy.is_garde == True, 1))).label('garde'),
+            db.func.count(db.case((Pharmacy.categorie_emplacement == 'gare', 1))).label('gare'),
+            db.func.count(db.case((Pharmacy.location_validated == True, 1))).label('validated')
+        ).first()
+
         villes = db.session.query(
             Pharmacy.ville, 
             db.func.count(Pharmacy.id)
         ).group_by(Pharmacy.ville).all()
         
         return {
-            'total': total,
-            'pharmacies_garde': garde,
-            'pharmacies_gare': gare,
-            'locations_validated': validated,
+            'total': stats.total if stats else 0,
+            'pharmacies_garde': stats.garde if stats else 0,
+            'pharmacies_gare': stats.gare if stats else 0,
+            'locations_validated': stats.validated if stats else 0,
             'par_ville': {v: c for v, c in villes}
         }
     

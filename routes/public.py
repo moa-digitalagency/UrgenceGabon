@@ -643,12 +643,8 @@ def get_random_ad():
     if not active_ads:
         return jsonify(None)
     
-    weighted_ads = []
-    for ad in active_ads:
-        weight = max(1, ad.priority + 1)
-        weighted_ads.extend([ad] * weight)
-    
-    selected_ad = random.choice(weighted_ads)
+    weights = [max(1, ad.priority + 1) for ad in active_ads]
+    selected_ad = random.choices(active_ads, weights=weights, k=1)[0]
     
     settings = AdSettings.get_settings()
     skip_delay = selected_ad.skip_delay if selected_ad.skip_delay > 0 else settings.default_skip_delay

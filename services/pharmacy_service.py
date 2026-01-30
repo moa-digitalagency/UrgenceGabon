@@ -11,7 +11,7 @@ recherche, filtrage, CRUD et statistiques.
 """
 
 from datetime import datetime, timedelta
-from extensions import db
+from extensions import db, utcnow
 from models.pharmacy import Pharmacy
 
 
@@ -84,7 +84,7 @@ class PharmacyService:
         rows = query.order_by(Pharmacy.nom).all()
 
         results = []
-        gabon_now = datetime.utcnow() + timedelta(hours=1)
+        gabon_now = utcnow() + timedelta(hours=1)
 
         for row in rows:
             is_garde = row.is_garde
@@ -208,7 +208,7 @@ class PharmacyService:
     @staticmethod
     def validate_location(pharmacy, admin_id):
         pharmacy.location_validated = True
-        pharmacy.validated_at = datetime.utcnow()
+        pharmacy.validated_at = utcnow()
         pharmacy.validated_by_admin_id = admin_id
         db.session.commit()
         return pharmacy

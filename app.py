@@ -19,7 +19,7 @@ from flask import Flask, jsonify, render_template, request, g
 from flask_login import current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from extensions import db, login_manager, csrf, limiter
+from extensions import db, login_manager, csrf, limiter, utcnow
 from routes import public_bp, admin_bp
 from security.auth import init_login_manager, create_default_admin
 
@@ -186,7 +186,7 @@ def register_error_handlers(app):
             'path': request.path,
             'method': request.method,
             'ip': request.headers.get('X-Forwarded-For', request.remote_addr),
-            'timestamp': datetime.utcnow().isoformat(),
+            'timestamp': utcnow().isoformat(),
             'traceback': error_traceback if app.debug else None
         }
         
@@ -209,7 +209,7 @@ def register_error_handlers(app):
             'path': request.path,
             'method': request.method,
             'ip': request.headers.get('X-Forwarded-For', request.remote_addr),
-            'timestamp': datetime.utcnow().isoformat(),
+            'timestamp': utcnow().isoformat(),
             'traceback': error_traceback if app.debug else None
         }
         

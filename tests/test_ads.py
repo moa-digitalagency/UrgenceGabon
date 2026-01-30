@@ -2,7 +2,7 @@ import os
 import sys
 import pytest
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # Add root directory to path to import app and init_db
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -63,20 +63,20 @@ def test_get_random_ad_respects_dates(app, client):
         # Future ad (should not show)
         future_ad = Advertisement(
             title="Future Ad",
-            start_date=datetime.utcnow() + timedelta(days=1),
+            start_date=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=1),
             is_active=True
         )
         # Expired ad (should not show)
         expired_ad = Advertisement(
             title="Expired Ad",
-            end_date=datetime.utcnow() - timedelta(days=1),
+            end_date=datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=1),
             is_active=True
         )
         # Active ad
         active_ad = Advertisement(
             title="Active Ad",
-            start_date=datetime.utcnow() - timedelta(hours=1),
-            end_date=datetime.utcnow() + timedelta(hours=1),
+            start_date=datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=1),
+            end_date=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(hours=1),
             is_active=True
         )
         db.session.add_all([future_ad, expired_ad, active_ad])

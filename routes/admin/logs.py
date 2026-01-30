@@ -69,10 +69,11 @@ def view_logs():
 def clear_logs():
     from flask import flash, redirect, url_for
     from flask_login import current_user
+    from extensions import utcnow
     
     days = request.form.get('days', 30, type=int)
-    from datetime import datetime, timedelta
-    cutoff = datetime.utcnow() - timedelta(days=days)
+    from datetime import timedelta
+    cutoff = utcnow() - timedelta(days=days)
     
     try:
         count = ActivityLog.query.filter(ActivityLog.timestamp < cutoff).delete()

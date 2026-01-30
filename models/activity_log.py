@@ -10,13 +10,13 @@ Ce fichier définit le modèle pour enregistrer toutes les activités du site:
 requêtes, erreurs, actions admin, etc.
 """
 
-from extensions import db
+from extensions import db, utcnow
 from datetime import datetime
 
 
 class ActivityLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    timestamp = db.Column(db.DateTime, default=utcnow, index=True)
     ip_address = db.Column(db.String(45))
     user_agent = db.Column(db.String(500))
     method = db.Column(db.String(10))

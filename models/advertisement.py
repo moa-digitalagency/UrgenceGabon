@@ -10,7 +10,7 @@ Ce fichier définit les modèles Advertisement pour les publicités (image/vidé
 et AdSettings pour la configuration du système publicitaire.
 """
 
-from extensions import db
+from extensions import db, utcnow
 from datetime import datetime
 import json
 
@@ -38,8 +38,8 @@ class Advertisement(db.Model):
     view_count = db.Column(db.Integer, default=0)
     click_count = db.Column(db.Integer, default=0)
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utcnow)
+    updated_at = db.Column(db.DateTime, default=utcnow, onupdate=utcnow)
 
     def get_image_url(self):
         if self.image_filename:
@@ -49,7 +49,7 @@ class Advertisement(db.Model):
     def is_currently_active(self):
         if not self.is_active:
             return False
-        now = datetime.utcnow()
+        now = utcnow()
         if self.start_date and now < self.start_date:
             return False
         if self.end_date and now > self.end_date:
@@ -98,7 +98,7 @@ class AdSettings(db.Model):
     show_on_mobile = db.Column(db.Boolean, default=True)
     show_on_desktop = db.Column(db.Boolean, default=True)
 
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=utcnow, onupdate=utcnow)
 
     @staticmethod
     def get_settings():

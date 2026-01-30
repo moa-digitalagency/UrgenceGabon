@@ -10,7 +10,7 @@ Ce fichier définit le modèle Pharmacy avec les types d'établissement,
 catégories d'emplacement, statut de garde et coordonnées GPS.
 """
 
-from extensions import db
+from extensions import db, utcnow
 from datetime import datetime, timedelta
 
 
@@ -53,8 +53,8 @@ class Pharmacy(db.Model):
     is_verified = db.Column(db.Boolean, default=False)
     validated_at = db.Column(db.DateTime)
     validated_by_admin_id = db.Column(db.Integer, db.ForeignKey('admin.id'))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utcnow)
+    updated_at = db.Column(db.DateTime, default=utcnow, onupdate=utcnow)
     
     @property
     def is_currently_garde(self):
@@ -63,7 +63,7 @@ class Pharmacy(db.Model):
         if self.garde_end_date is None:
             return True
         # Gabon is UTC+1
-        gabon_now = datetime.utcnow() + timedelta(hours=1)
+        gabon_now = utcnow() + timedelta(hours=1)
         return gabon_now <= self.garde_end_date
     
     def to_dict(self):

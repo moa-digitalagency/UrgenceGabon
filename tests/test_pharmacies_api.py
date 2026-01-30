@@ -10,7 +10,7 @@ os.environ['FLASK_ENV'] = 'testing'
 from app import create_app
 from extensions import db
 from models.pharmacy import Pharmacy
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 @pytest.fixture
 def app():
@@ -28,7 +28,7 @@ def app():
         # Create test data
         p1 = Pharmacy(
             code="P1", nom="Pharmacie Alpha", ville="Libreville", quartier="Centre",
-            is_garde=True, garde_end_date=datetime.utcnow() + timedelta(days=1),
+            is_garde=True, garde_end_date=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=1),
             latitude=0.1, longitude=0.1
         )
         p2 = Pharmacy(

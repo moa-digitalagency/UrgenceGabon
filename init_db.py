@@ -18,6 +18,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from sqlalchemy import inspect, text
+from sqlalchemy.exc import OperationalError
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -174,23 +175,27 @@ def check_and_add_missing_columns():
             for col_name in sorted(missing_cols):
                 try:
                     col = model_class.__table__.columns[col_name]
-                    col_type = str(col.type)
+                    # Compile the column type for the specific database dialect (SQLite/PostgreSQL)
+                    col_type = col.type.compile(dialect=db.engine.dialect)
                     
                     # Sécurisation des noms de colonnes (bien que provenant du modèle)
-                    safe_table = table_name # SQLAlchemy models have safe table names
-                    safe_col = col_name # SQLAlchemy columns have safe names
+                    safe_table = table_name
+                    safe_col = col_name
 
                     # Construire la clause ALTER TABLE avec valeur par défaut si nécessaire
                     if col.nullable:
                         alter_sql = f'ALTER TABLE "{safe_table}" ADD COLUMN "{safe_col}" {col_type}'
                     else:
                         # Pour les colonnes non-nullables, utiliser une valeur par défaut appropriée
-                        default_val = get_default_value_for_type(col_type)
+                        default_val = get_default_value_for_type(str(col_type))
                         alter_sql = f'ALTER TABLE "{safe_table}" ADD COLUMN "{safe_col}" {col_type} DEFAULT {default_val}'
                     
                     db.session.execute(text(alter_sql))
                     db.session.commit()
                     logger.info(f"  ✓ Ajoutée colonne: {table_name}.{col_name}")
+                except OperationalError as e:
+                    db.session.rollback()
+                    logger.error(f"  ⚠️  Erreur SQL pour {table_name}.{col_name}: {e.orig} (non-critique)")
                 except Exception as e:
                     db.session.rollback()
                     logger.error(f"  ⚠️  {table_name}.{col_name}: {str(e)[:100]} (non-critique, continuant...)")

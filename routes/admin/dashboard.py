@@ -15,7 +15,7 @@ from flask import render_template, flash, request
 from flask_login import login_required
 from models.pharmacy import Pharmacy
 from models.submission import LocationSubmission, InfoSubmission, PharmacyView, Suggestion, PharmacyProposal, PageInteraction
-from extensions import db
+from extensions import db, utcnow
 from datetime import datetime, timedelta
 from sqlalchemy import func, case
 from routes.admin import admin_bp
@@ -147,7 +147,7 @@ def admin_dashboard():
         )
         pharmacies_by_type = [{'type': row.type_etablissement, 'count': row.count} for row in pharmacies_by_type_query]
         
-        today = datetime.utcnow().date()
+        today = utcnow().date()
         day_names = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
         
         start_7_days = datetime.combine(today - timedelta(days=6), datetime.min.time())

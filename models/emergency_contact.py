@@ -10,7 +10,7 @@ Ce fichier définit le modèle EmergencyContact pour les numéros d'urgence
 (police, pompiers, hôpitaux, etc.) nationaux et par ville.
 """
 
-from extensions import db
+from extensions import db, utcnow
 from datetime import datetime
 
 
@@ -37,8 +37,8 @@ class EmergencyContact(db.Model):
     is_national = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
     ordering = db.Column(db.Integer, default=0)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utcnow)
+    updated_at = db.Column(db.DateTime, default=utcnow, onupdate=utcnow)
     
     def to_dict(self):
         return {

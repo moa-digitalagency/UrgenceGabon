@@ -14,7 +14,7 @@ from flask import jsonify, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from models.pharmacy import Pharmacy
 from models.submission import LocationSubmission, InfoSubmission, Suggestion, PharmacyProposal
-from extensions import db, csrf
+from extensions import db, csrf, utcnow
 from datetime import datetime
 from routes.admin import admin_bp, get_json_or_400
 import random
@@ -30,11 +30,11 @@ def approve_location_submission(id):
     pharmacy.latitude = submission.latitude
     pharmacy.longitude = submission.longitude
     pharmacy.location_validated = True
-    pharmacy.validated_at = datetime.utcnow()
+    pharmacy.validated_at = utcnow()
     pharmacy.validated_by_admin_id = current_user.id
     
     submission.status = 'approved'
-    submission.reviewed_at = datetime.utcnow()
+    submission.reviewed_at = utcnow()
     submission.reviewed_by_admin_id = current_user.id
     
     db.session.commit()
@@ -49,7 +49,7 @@ def reject_location_submission(id):
     submission = LocationSubmission.query.get_or_404(id)
     
     submission.status = 'rejected'
-    submission.reviewed_at = datetime.utcnow()
+    submission.reviewed_at = utcnow()
     submission.reviewed_by_admin_id = current_user.id
     
     db.session.commit()
@@ -74,7 +74,7 @@ def approve_info_submission(id):
         setattr(pharmacy, submission.field_name, submission.proposed_value)
     
     submission.status = 'approved'
-    submission.reviewed_at = datetime.utcnow()
+    submission.reviewed_at = utcnow()
     submission.reviewed_by_admin_id = current_user.id
     
     db.session.commit()
@@ -89,7 +89,7 @@ def reject_info_submission(id):
     submission = InfoSubmission.query.get_or_404(id)
     
     submission.status = 'rejected'
-    submission.reviewed_at = datetime.utcnow()
+    submission.reviewed_at = utcnow()
     submission.reviewed_by_admin_id = current_user.id
     
     db.session.commit()
@@ -107,7 +107,7 @@ def respond_suggestion(id):
     try:
         suggestion.admin_response = data.get('response', '')
         suggestion.status = 'resolved'
-        suggestion.reviewed_at = datetime.utcnow()
+        suggestion.reviewed_at = utcnow()
         suggestion.reviewed_by_admin_id = current_user.id
         
         db.session.commit()
@@ -123,7 +123,7 @@ def archive_suggestion(id):
     suggestion = Suggestion.query.get_or_404(id)
     
     suggestion.status = 'archived'
-    suggestion.reviewed_at = datetime.utcnow()
+    suggestion.reviewed_at = utcnow()
     suggestion.reviewed_by_admin_id = current_user.id
     
     db.session.commit()
@@ -136,7 +136,7 @@ def archive_suggestion(id):
 def mark_suggestion_read(id):
     suggestion = Suggestion.query.get_or_404(id)
     suggestion.status = 'resolved'
-    suggestion.reviewed_at = datetime.utcnow()
+    suggestion.reviewed_at = utcnow()
     suggestion.reviewed_by_admin_id = current_user.id
     db.session.commit()
     flash('Suggestion marquée comme lue', 'success')
@@ -171,7 +171,7 @@ def approve_pharmacy_proposal(id):
     db.session.add(pharmacy)
     
     proposal.status = 'approved'
-    proposal.reviewed_at = datetime.utcnow()
+    proposal.reviewed_at = utcnow()
     proposal.reviewed_by_admin_id = current_user.id
     
     db.session.commit()
@@ -185,7 +185,7 @@ def reject_pharmacy_proposal(id):
     proposal = PharmacyProposal.query.get_or_404(id)
     
     proposal.status = 'rejected'
-    proposal.reviewed_at = datetime.utcnow()
+    proposal.reviewed_at = utcnow()
     proposal.reviewed_by_admin_id = current_user.id
     
     db.session.commit()

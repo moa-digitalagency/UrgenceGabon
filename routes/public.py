@@ -18,7 +18,7 @@ from models.pharmacy import Pharmacy
 from models.emergency_contact import EmergencyContact
 from models.site_settings import PopupMessage, SiteSettings
 from models.advertisement import Advertisement, AdSettings
-from extensions import db, csrf, limiter
+from extensions import db, csrf, limiter, utcnow
 from datetime import datetime
 from sqlalchemy import func
 
@@ -53,7 +53,7 @@ def generate_sitemap():
     """
     try:
         base_url = request.url_root.rstrip('/')
-        now = datetime.utcnow()
+        now = utcnow()
         
         sitemap_entries = []
         
@@ -631,9 +631,8 @@ def get_ad_settings():
 @public_bp.route('/api/ads/random')
 def get_random_ad():
     import random
-    from datetime import datetime
     
-    now = datetime.utcnow()
+    now = utcnow()
     active_ads = Advertisement.query.filter(
         Advertisement.is_active == True,
         db.or_(Advertisement.start_date == None, Advertisement.start_date <= now),

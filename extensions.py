@@ -15,6 +15,11 @@ from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from datetime import datetime, timezone
+
+def utcnow():
+    """Return current UTC time as timezone-naive datetime (for compatibility)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 db = SQLAlchemy()
 login_manager = LoginManager()

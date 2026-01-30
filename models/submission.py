@@ -10,7 +10,7 @@ Ce fichier définit les modèles pour les soumissions de localisation GPS,
 corrections d'informations, suggestions et propositions de nouvelles pharmacies.
 """
 
-from extensions import db
+from extensions import db, utcnow
 from datetime import datetime
 
 
@@ -23,7 +23,7 @@ class LocationSubmission(db.Model):
     submitted_by_phone = db.Column(db.String(50))
     comment = db.Column(db.Text)
     status = db.Column(db.String(20), default='pending')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utcnow)
     reviewed_at = db.Column(db.DateTime)
     reviewed_by_admin_id = db.Column(db.Integer, db.ForeignKey('admin.id'))
     
@@ -81,7 +81,7 @@ class InfoSubmission(db.Model):
 class PharmacyView(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     pharmacy_id = db.Column(db.Integer, db.ForeignKey('pharmacy.id'), nullable=False)
-    viewed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    viewed_at = db.Column(db.DateTime, default=utcnow)
     
     pharmacy = db.relationship('Pharmacy', backref='views')
 
@@ -96,7 +96,7 @@ class Suggestion(db.Model):
     submitted_by_phone = db.Column(db.String(50))
     status = db.Column(db.String(20), default='pending')
     admin_response = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utcnow)
     reviewed_at = db.Column(db.DateTime)
     reviewed_by_admin_id = db.Column(db.Integer, db.ForeignKey('admin.id'))
     
@@ -137,7 +137,7 @@ class PharmacyProposal(db.Model):
     submitted_by_phone = db.Column(db.String(50))
     comment = db.Column(db.Text)
     status = db.Column(db.String(20), default='pending')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utcnow)
     reviewed_at = db.Column(db.DateTime)
     reviewed_by_admin_id = db.Column(db.Integer, db.ForeignKey('admin.id'))
     
@@ -175,7 +175,7 @@ class PageInteraction(db.Model):
     search_query = db.Column(db.String(500))
     filter_value = db.Column(db.String(100))
     tab_name = db.Column(db.String(50))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    created_at = db.Column(db.DateTime, default=utcnow, index=True)
     
     def to_dict(self):
         return {
@@ -194,7 +194,7 @@ class UserAction(db.Model):
     action_type = db.Column(db.String(50), nullable=False)
     pharmacy_id = db.Column(db.Integer, db.ForeignKey('pharmacy.id'))
     ad_id = db.Column(db.Integer, db.ForeignKey('advertisement.id'))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    created_at = db.Column(db.DateTime, default=utcnow, index=True)
     
     pharmacy = db.relationship('Pharmacy', backref='user_actions')
     ad = db.relationship('Advertisement', backref='user_actions')

@@ -10,7 +10,7 @@ Ce fichier définit les modèles SiteSettings pour la configuration du site
 (logo, favicon, SEO) et PopupMessage pour les messages d'accueil.
 """
 
-from extensions import db
+from extensions import db, utcnow
 from datetime import datetime
 
 
@@ -18,7 +18,7 @@ class SiteSettings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.String(100), unique=True, nullable=False)
     value = db.Column(db.Text)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=utcnow, onupdate=utcnow)
     
     @staticmethod
     def get(key, default=None):
@@ -73,8 +73,8 @@ class PopupMessage(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     show_once = db.Column(db.Boolean, default=True)
     ordering = db.Column(db.Integer, default=0)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utcnow)
+    updated_at = db.Column(db.DateTime, default=utcnow, onupdate=utcnow)
     
     def get_image_url(self):
         if self.image_filename:

@@ -17,7 +17,7 @@ from models.pharmacy import Pharmacy
 from models.submission import LocationSubmission, InfoSubmission, PharmacyView, Suggestion, PharmacyProposal, PageInteraction
 from extensions import db
 from datetime import datetime, timedelta
-from sqlalchemy import func
+from sqlalchemy import func, case
 from routes.admin import admin_bp
 
 logger = logging.getLogger(__name__)
@@ -198,79 +198,32 @@ def admin_dashboard():
         week_start = datetime.combine(today - timedelta(days=today.weekday()), datetime.min.time())
         month_start = datetime.combine(today.replace(day=1), datetime.min.time())
         
-        views_today = safe_query(
-            lambda: db.session.query(func.count(PharmacyView.id)).filter(
-                PharmacyView.viewed_at >= today_start
-            ).scalar() or 0,
-            0
+        views_stats = safe_query(
+            lambda: db.session.query(
+                func.count(case((PharmacyView.viewed_at >= today_start, 1))),
+                func.count(case((PharmacyView.viewed_at >= week_start, 1))),
+                func.count(case((PharmacyView.viewed_at >= month_start, 1)))
+            ).first(),
+            None
+        )
+        views_today, views_this_week, views_this_month = views_stats or (0, 0, 0)
+        
+        interaction_stats = safe_query(
+            lambda: db.session.query(
+                func.count(case(((PageInteraction.interaction_type == 'page_load') & (PageInteraction.created_at >= today_start), 1))),
+                func.count(case(((PageInteraction.interaction_type == 'tab_switch') & (PageInteraction.created_at >= today_start), 1))),
+                func.count(case(((PageInteraction.interaction_type == 'search') & (PageInteraction.created_at >= today_start), 1))),
+                func.count(case(((PageInteraction.interaction_type == 'city_filter') & (PageInteraction.created_at >= today_start), 1))),
+                func.count(case((PageInteraction.created_at >= start_7_days, 1))),
+                func.count(case((PageInteraction.created_at >= start_30_days, 1))),
+                func.count(PageInteraction.id)
+            ).first(),
+            None
         )
         
-        views_this_week = safe_query(
-            lambda: db.session.query(func.count(PharmacyView.id)).filter(
-                PharmacyView.viewed_at >= week_start
-            ).scalar() or 0,
-            0
-        )
-        
-        views_this_month = safe_query(
-            lambda: db.session.query(func.count(PharmacyView.id)).filter(
-                PharmacyView.viewed_at >= month_start
-            ).scalar() or 0,
-            0
-        )
-        
-        page_loads = safe_query(
-            lambda: db.session.query(func.count(PageInteraction.id)).filter(
-                PageInteraction.interaction_type == 'page_load',
-                PageInteraction.created_at >= today_start
-            ).scalar() or 0,
-            0
-        )
-        
-        tab_switches = safe_query(
-            lambda: db.session.query(func.count(PageInteraction.id)).filter(
-                PageInteraction.interaction_type == 'tab_switch',
-                PageInteraction.created_at >= today_start
-            ).scalar() or 0,
-            0
-        )
-        
-        searches = safe_query(
-            lambda: db.session.query(func.count(PageInteraction.id)).filter(
-                PageInteraction.interaction_type == 'search',
-                PageInteraction.created_at >= today_start
-            ).scalar() or 0,
-            0
-        )
-        
-        filters = safe_query(
-            lambda: db.session.query(func.count(PageInteraction.id)).filter(
-                PageInteraction.interaction_type == 'city_filter',
-                PageInteraction.created_at >= today_start
-            ).scalar() or 0,
-            0
-        )
-        
-        total_interactions = safe_query(
-            lambda: db.session.query(func.count(PageInteraction.id)).scalar() or 0,
-            0
-        )
+        page_loads, tab_switches, searches, filters, interactions_7_days, interactions_30_days, total_interactions = interaction_stats or (0, 0, 0, 0, 0, 0, 0)
         
         interactions_today = page_loads + tab_switches + searches + filters
-        
-        interactions_7_days = safe_query(
-            lambda: db.session.query(func.count(PageInteraction.id)).filter(
-                PageInteraction.created_at >= start_7_days
-            ).scalar() or 0,
-            0
-        )
-        
-        interactions_30_days = safe_query(
-            lambda: db.session.query(func.count(PageInteraction.id)).filter(
-                PageInteraction.created_at >= start_30_days
-            ).scalar() or 0,
-            0
-        )
         
         return render_template('admin/dashboard.html', 
             pharmacies=pharmacies,

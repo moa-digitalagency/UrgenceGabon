@@ -455,14 +455,14 @@ def get_pharmacies():
     garde_only = request.args.get('garde', '') == 'true'
     gare_only = request.args.get('gare', '') == 'true'
     
-    pharmacies = PharmacyService.get_all_pharmacies(
+    pharmacies = PharmacyService.get_all_pharmacies_light(
         search=search,
         ville=ville,
         garde_only=garde_only,
         gare_only=gare_only
     )
     
-    return jsonify([p.to_dict() for p in pharmacies])
+    return jsonify(pharmacies)
 
 
 

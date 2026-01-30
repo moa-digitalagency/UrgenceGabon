@@ -10,7 +10,7 @@ Ce fichier contient la logique métier pour la gestion des pharmacies:
 recherche, filtrage, CRUD et statistiques.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from extensions import db
 from models.pharmacy import Pharmacy
 
@@ -43,6 +43,76 @@ class PharmacyService:
             query = query.filter(Pharmacy.categorie_emplacement == categorie)
         
         return query.order_by(Pharmacy.nom).all()
+
+    @staticmethod
+    def get_all_pharmacies_light(search=None, ville=None, garde_only=False, gare_only=False, categorie=None):
+        """
+        Optimized version of get_all_pharmacies that returns a list of dictionaries
+        instead of full model instances. This avoids the overhead of SQLAlchemy
+        model instantiation and is much faster for large result sets.
+        """
+        query = db.session.query(
+            Pharmacy.id, Pharmacy.code, Pharmacy.nom, Pharmacy.ville, Pharmacy.quartier,
+            Pharmacy.telephone, Pharmacy.bp, Pharmacy.horaires, Pharmacy.services,
+            Pharmacy.proprietaire, Pharmacy.type_etablissement, Pharmacy.categorie_emplacement,
+            Pharmacy.is_garde, Pharmacy.garde_end_date, Pharmacy.latitude, Pharmacy.longitude,
+            Pharmacy.location_validated, Pharmacy.is_verified
+        )
+
+        if search:
+            search_lower = f'%{search.lower()}%'
+            query = query.filter(
+                db.or_(
+                    Pharmacy.nom.ilike(search_lower),
+                    Pharmacy.quartier.ilike(search_lower),
+                    Pharmacy.services.ilike(search_lower)
+                )
+            )
+
+        if ville:
+            query = query.filter(Pharmacy.ville == ville)
+
+        if garde_only:
+            query = query.filter(Pharmacy.is_garde == True)
+
+        if gare_only:
+            query = query.filter(Pharmacy.categorie_emplacement == 'gare')
+
+        if categorie:
+            query = query.filter(Pharmacy.categorie_emplacement == categorie)
+
+        rows = query.order_by(Pharmacy.nom).all()
+
+        results = []
+        gabon_now = datetime.utcnow() + timedelta(hours=1)
+
+        for row in rows:
+            is_garde = row.is_garde
+            if is_garde and row.garde_end_date:
+                if gabon_now > row.garde_end_date:
+                    is_garde = False
+
+            results.append({
+                'id': row.id,
+                'code': row.code,
+                'nom': row.nom,
+                'ville': row.ville,
+                'quartier': row.quartier or '',
+                'telephone': row.telephone or '',
+                'bp': row.bp or '',
+                'horaires': row.horaires or '',
+                'services': row.services or '',
+                'proprietaire': row.proprietaire or '',
+                'type_etablissement': row.type_etablissement or 'pharmacie_generale',
+                'categorie_emplacement': row.categorie_emplacement or 'standard',
+                'is_garde': is_garde,
+                'lat': row.latitude,
+                'lng': row.longitude,
+                'location_validated': row.location_validated,
+                'is_verified': row.is_verified,
+                'garde_end_date': row.garde_end_date.isoformat() if row.garde_end_date else None
+            })
+        return results
     
     @staticmethod
     def get_pharmacy_by_id(pharmacy_id):

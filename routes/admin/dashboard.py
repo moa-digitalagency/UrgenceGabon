@@ -38,14 +38,44 @@ def safe_query(query_func, default=None):
 @admin_bp.route('/')
 @login_required
 def admin_dashboard():
-    # Initialize variables with defaults
-    pharmacies = []
+    # Initialize all variables with safe defaults to prevent UndefinedError in templates
+    pharmacies = None
     garde_pharmacies = []
     total_pharmacies_count = 0
     garde_pharmacies_count = 0
     gps_pharmacies_count = 0
     validated_gps_count = 0
     verified_pharmacies_count = 0
+    pending_locations = []
+    pending_infos = []
+    pending_suggestions = []
+    pending_proposals = []
+    top_pharmacies = []
+    recent_pharmacies = []
+    total_views = 0
+    views_by_city = []
+    pharmacies_by_city = []
+    pharmacies_by_type = []
+    views_last_7_days = []
+    views_last_30_days = []
+    total_locations = 0
+    approved_locations = 0
+    total_infos = 0
+    approved_infos = 0
+    total_suggestions = 0
+    total_proposals = 0
+    approved_proposals = 0
+    views_today = 0
+    views_this_week = 0
+    views_this_month = 0
+    page_loads = 0
+    tab_switches = 0
+    searches = 0
+    filters = 0
+    total_interactions = 0
+    interactions_today = 0
+    interactions_7_days = 0
+    interactions_30_days = 0
 
     try:
         # Get query parameters
@@ -304,43 +334,43 @@ def admin_dashboard():
         # Include detailed error in flash message for debugging
         flash(f'Erreur lors du chargement: {str(e)}', 'error')
         # If the main try block fails, we still need to render the template
-        # but with empty data. However, individual try blocks above should handle most cases.
+        # but with the variables we've managed to initialize.
         return render_template('admin/dashboard.html', 
-            pharmacies=None,
-            garde_pharmacies=[],
-            total_pharmacies_count=0,
-            garde_pharmacies_count=0,
-            gps_pharmacies_count=0,
-            validated_gps_count=0,
-            verified_pharmacies_count=0,
-            pending_locations=[],
-            pending_infos=[],
-            pending_suggestions=[],
-            pending_proposals=[],
-            top_pharmacies=[],
-            recent_pharmacies=[],
-            total_views=0,
-            views_by_city=[],
-            pharmacies_by_city=[],
-            pharmacies_by_type=[],
-            views_last_7_days=[],
-            views_last_30_days=[],
-            total_locations=0,
-            approved_locations=0,
-            total_infos=0,
-            approved_infos=0,
-            total_suggestions=0,
-            total_proposals=0,
-            approved_proposals=0,
-            views_today=0,
-            views_this_week=0,
-            views_this_month=0,
-            page_loads=0,
-            tab_switches=0,
-            searches=0,
-            filters=0,
-            total_interactions=0,
-            interactions_today=0,
-            interactions_7_days=0,
-            interactions_30_days=0
+            pharmacies=pharmacies,
+            garde_pharmacies=garde_pharmacies,
+            total_pharmacies_count=total_pharmacies_count,
+            garde_pharmacies_count=garde_pharmacies_count,
+            gps_pharmacies_count=gps_pharmacies_count,
+            validated_gps_count=validated_gps_count,
+            verified_pharmacies_count=verified_pharmacies_count,
+            pending_locations=pending_locations,
+            pending_infos=pending_infos,
+            pending_suggestions=pending_suggestions,
+            pending_proposals=pending_proposals,
+            top_pharmacies=top_pharmacies,
+            recent_pharmacies=recent_pharmacies,
+            total_views=total_views,
+            views_by_city=views_by_city,
+            pharmacies_by_city=pharmacies_by_city,
+            pharmacies_by_type=pharmacies_by_type,
+            views_last_7_days=views_last_7_days,
+            views_last_30_days=views_last_30_days,
+            total_locations=total_locations,
+            approved_locations=approved_locations,
+            total_infos=total_infos,
+            approved_infos=approved_infos,
+            total_suggestions=total_suggestions,
+            total_proposals=total_proposals,
+            approved_proposals=approved_proposals,
+            views_today=views_today,
+            views_this_week=views_this_week,
+            views_this_month=views_this_month,
+            page_loads=page_loads,
+            tab_switches=tab_switches,
+            searches=searches,
+            filters=filters,
+            total_interactions=total_interactions,
+            interactions_today=interactions_today,
+            interactions_7_days=interactions_7_days,
+            interactions_30_days=interactions_30_days
         )

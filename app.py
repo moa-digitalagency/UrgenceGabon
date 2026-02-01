@@ -22,9 +22,33 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from extensions import db, login_manager, csrf, limiter, utcnow
 from routes import public_bp, admin_bp
 from security.auth import init_login_manager, create_default_admin
+from dotenv import load_dotenv
 
-logging.basicConfig(level=logging.DEBUG)
+# Load environment variables
+load_dotenv()
+
+# Configure logging
+log_level = os.environ.get('LOG_LEVEL', 'INFO').upper()
+logging.basicConfig(
+    level=getattr(logging, log_level, logging.INFO),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
+
+# Optional file logging
+log_file = os.environ.get('LOG_FILE')
+if log_file:
+    try:
+        log_dir = os.path.dirname(log_file)
+        if log_dir and not os.path.exists(log_dir):
+            os.makedirs(log_dir, exist_ok=True)
+
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        logging.getLogger().addHandler(file_handler)
+        logger.info(f"File logging enabled: {log_file}")
+    except Exception as e:
+        logger.error(f"Could not set up file logging: {e}")
 
 
 def create_app():

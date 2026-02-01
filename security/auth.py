@@ -28,6 +28,9 @@ def load_user(user_id):
 
 
 def create_default_admin():
+    if os.environ.get('FLASK_ENV') == 'testing':
+        return
+
     admin_username = os.environ.get('ADMIN_USERNAME')
     admin_password = os.environ.get('ADMIN_PASSWORD')
     

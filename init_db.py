@@ -229,24 +229,24 @@ def init_database():
     logger.info("=" * 60)
     
     with app.app_context():
-        # Importer tous les modèles pour les enregistrer avec SQLAlchemy
-        from models.pharmacy import Pharmacy
-        from models.admin import Admin
-        from models.submission import LocationSubmission, InfoSubmission, PharmacyView, Suggestion, PharmacyProposal, PageInteraction, UserAction
-        from models.emergency_contact import EmergencyContact
-        from models.site_settings import SiteSettings, PopupMessage
-        from models.advertisement import Advertisement, AdSettings
-        from models.activity_log import ActivityLog
+        # Importer tous les modèles requis via la fonction centrale pour garantir l'enregistrement SQLAlchemy
+        models = get_required_models()
         
         existing_tables = get_existing_tables()
         logger.info(f"État actuel: {len(existing_tables)} table(s) existante(s)")
         
         # Créer toutes les tables manquantes (checkfirst=True préserve les données)
-        logger.info("Création/vérification des tables...")
+        logger.info("Création/vérification des tables via db.create_all()...")
         db.create_all()
         
         new_existing_tables = get_existing_tables()
         logger.info(f"Toutes les tables requises existent! ({len(new_existing_tables)} table(s))")
+
+        for table in sorted(models.keys()):
+            if table in new_existing_tables:
+                logger.info(f"  ✓ Table validée: {table}")
+            else:
+                logger.error(f"  ✗ Table manquante après création: {table}")
 
 
 def init_admin_from_env():

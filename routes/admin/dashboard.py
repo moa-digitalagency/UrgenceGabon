@@ -38,44 +38,9 @@ def safe_query(query_func, default=None):
 @admin_bp.route('/')
 @login_required
 def admin_dashboard():
-    # Initialize all variables with safe defaults to prevent UndefinedError in templates
-    pharmacies = None
-    garde_pharmacies = []
-    total_pharmacies_count = 0
-    garde_pharmacies_count = 0
-    gps_pharmacies_count = 0
-    validated_gps_count = 0
-    verified_pharmacies_count = 0
-    pending_locations = []
-    pending_infos = []
-    pending_suggestions = []
-    pending_proposals = []
-    top_pharmacies = []
-    recent_pharmacies = []
-    total_views = 0
-    views_by_city = []
-    pharmacies_by_city = []
-    pharmacies_by_type = []
-    views_last_7_days = []
-    views_last_30_days = []
-    total_locations = 0
-    approved_locations = 0
-    total_infos = 0
-    approved_infos = 0
-    total_suggestions = 0
-    total_proposals = 0
-    approved_proposals = 0
-    views_today = 0
-    views_this_week = 0
-    views_this_month = 0
-    page_loads = 0
-    tab_switches = 0
-    searches = 0
-    filters = 0
-    total_interactions = 0
-    interactions_today = 0
-    interactions_7_days = 0
-    interactions_30_days = 0
+    # Variables are now initialized with safe defaults via context_processor in routes/admin/__init__.py
+    # We only need to populate them with actual data here.
+    context = {}
 
     try:
         # Get query parameters
@@ -83,14 +48,14 @@ def admin_dashboard():
         search = request.args.get('q', '')
 
         # Calculate stats using efficient count queries
-        total_pharmacies_count = safe_query(lambda: Pharmacy.query.count(), 0)
-        garde_pharmacies_count = safe_query(lambda: Pharmacy.query.filter_by(is_garde=True).count(), 0)
-        gps_pharmacies_count = safe_query(lambda: Pharmacy.query.filter(Pharmacy.latitude.isnot(None), Pharmacy.longitude.isnot(None)).count(), 0)
-        validated_gps_count = safe_query(lambda: Pharmacy.query.filter_by(location_validated=True).count(), 0)
-        verified_pharmacies_count = safe_query(lambda: Pharmacy.query.filter_by(is_verified=True).count(), 0)
+        context['total_pharmacies_count'] = safe_query(lambda: Pharmacy.query.count(), 0)
+        context['garde_pharmacies_count'] = safe_query(lambda: Pharmacy.query.filter_by(is_garde=True).count(), 0)
+        context['gps_pharmacies_count'] = safe_query(lambda: Pharmacy.query.filter(Pharmacy.latitude.isnot(None), Pharmacy.longitude.isnot(None)).count(), 0)
+        context['validated_gps_count'] = safe_query(lambda: Pharmacy.query.filter_by(location_validated=True).count(), 0)
+        context['verified_pharmacies_count'] = safe_query(lambda: Pharmacy.query.filter_by(is_verified=True).count(), 0)
 
         # Get garde pharmacies separately for the specific tab
-        garde_pharmacies = safe_query(lambda: Pharmacy.query.filter_by(is_garde=True).order_by(Pharmacy.ville, Pharmacy.nom).all(), [])
+        context['garde_pharmacies'] = safe_query(lambda: Pharmacy.query.filter_by(is_garde=True).order_by(Pharmacy.ville, Pharmacy.nom).all(), [])
 
         # Build main query with pagination and search
         query = Pharmacy.query
@@ -103,36 +68,29 @@ def admin_dashboard():
             )
 
         # Don't use safe_query for the main pharmacies list so we can see the error if it fails
-        pharmacies = query.order_by(Pharmacy.ville, Pharmacy.nom).paginate(page=page, per_page=20, error_out=False)
+        context['pharmacies'] = query.order_by(Pharmacy.ville, Pharmacy.nom).paginate(page=page, per_page=20, error_out=False)
 
         # Debug: log pharmacy count
-        logger.info(f"Dashboard loaded: {total_pharmacies_count} total pharmacies, page {page}")
-    except Exception as e:
-        import traceback
-        logger.error(f"Error loading pharmacies: {e}")
-        logger.error(f"Traceback: {traceback.format_exc()}")
-        flash(f'Erreur lors du chargement des pharmacies: {str(e)}', 'error')
-        pharmacies = None
+        logger.info(f"Dashboard loaded: {context.get('total_pharmacies_count')} total pharmacies, page {page}")
 
-    try:
-        pending_locations = safe_query(
+        context['pending_locations'] = safe_query(
             lambda: LocationSubmission.query.filter_by(status='pending').order_by(LocationSubmission.created_at.desc()).all(),
             []
         )
-        pending_infos = safe_query(
+        context['pending_infos'] = safe_query(
             lambda: InfoSubmission.query.filter_by(status='pending').order_by(InfoSubmission.created_at.desc()).all(),
             []
         )
-        pending_suggestions = safe_query(
+        context['pending_suggestions'] = safe_query(
             lambda: Suggestion.query.filter_by(status='pending').order_by(Suggestion.created_at.desc()).all(),
             []
         )
-        pending_proposals = safe_query(
+        context['pending_proposals'] = safe_query(
             lambda: PharmacyProposal.query.filter_by(status='pending').order_by(PharmacyProposal.created_at.desc()).all(),
             []
         )
         
-        top_pharmacies = safe_query(
+        context['top_pharmacies'] = safe_query(
             lambda: db.session.query(
                 Pharmacy.id, Pharmacy.nom, Pharmacy.ville,
                 func.count(PharmacyView.id).label('view_count')
@@ -140,12 +98,12 @@ def admin_dashboard():
             []
         )
         
-        recent_pharmacies = safe_query(
+        context['recent_pharmacies'] = safe_query(
             lambda: Pharmacy.query.order_by(Pharmacy.updated_at.desc()).limit(5).all(),
             []
         )
         
-        total_views = safe_query(
+        context['total_views'] = safe_query(
             lambda: db.session.query(func.count(PharmacyView.id)).scalar() or 0,
             0
         )
@@ -157,7 +115,7 @@ def admin_dashboard():
             ).join(PharmacyView, Pharmacy.id == PharmacyView.pharmacy_id).group_by(Pharmacy.ville).order_by(func.count(PharmacyView.id).desc()).all(),
             []
         )
-        views_by_city = [{'ville': row.ville, 'view_count': row.view_count} for row in views_by_city_query]
+        context['views_by_city'] = [{'ville': row.ville, 'view_count': row.view_count} for row in views_by_city_query]
         
         pharmacies_by_city_query = safe_query(
             lambda: db.session.query(
@@ -166,7 +124,7 @@ def admin_dashboard():
             ).group_by(Pharmacy.ville).order_by(func.count(Pharmacy.id).desc()).all(),
             []
         )
-        pharmacies_by_city = [{'ville': row.ville, 'count': row.count} for row in pharmacies_by_city_query]
+        context['pharmacies_by_city'] = [{'ville': row.ville, 'count': row.count} for row in pharmacies_by_city_query]
         
         pharmacies_by_type_query = safe_query(
             lambda: db.session.query(
@@ -175,7 +133,7 @@ def admin_dashboard():
             ).group_by(Pharmacy.type_etablissement).all(),
             []
         )
-        pharmacies_by_type = [{'type': row.type_etablissement, 'count': row.count} for row in pharmacies_by_type_query]
+        context['pharmacies_by_type'] = [{'type': row.type_etablissement, 'count': row.count} for row in pharmacies_by_type_query]
         
         today = utcnow().date()
         day_names = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
@@ -190,10 +148,10 @@ def admin_dashboard():
         )
         views_7_days_dict = {str(row.view_date): row.count for row in views_7_days_query}
         
-        views_last_7_days = []
+        context['views_last_7_days'] = []
         for i in range(6, -1, -1):
             day = today - timedelta(days=i)
-            views_last_7_days.append({
+            context['views_last_7_days'].append({
                 'date': day.strftime('%d/%m'),
                 'day_name': day_names[day.weekday()],
                 'count': views_7_days_dict.get(str(day), 0)
@@ -209,10 +167,10 @@ def admin_dashboard():
         )
         views_30_days_dict = {str(row.view_date): row.count for row in views_30_days_query}
         
-        views_last_30_days = []
+        context['views_last_30_days'] = []
         for i in range(29, -1, -1):
             day = today - timedelta(days=i)
-            views_last_30_days.append({
+            context['views_last_30_days'].append({
                 'date': day.strftime('%d/%m'),
                 'count': views_30_days_dict.get(str(day), 0)
             })
@@ -225,8 +183,8 @@ def admin_dashboard():
             []
         )
         location_stats = {status: count for status, count in location_counts}
-        total_locations = sum(location_stats.values())
-        approved_locations = location_stats.get('approved', 0)
+        context['total_locations'] = sum(location_stats.values())
+        context['approved_locations'] = location_stats.get('approved', 0)
         
         info_counts = safe_query(
             lambda: db.session.query(
@@ -236,10 +194,10 @@ def admin_dashboard():
             []
         )
         info_stats = {status: count for status, count in info_counts}
-        total_infos = sum(info_stats.values())
-        approved_infos = info_stats.get('approved', 0)
+        context['total_infos'] = sum(info_stats.values())
+        context['approved_infos'] = info_stats.get('approved', 0)
         
-        total_suggestions = safe_query(
+        context['total_suggestions'] = safe_query(
             lambda: Suggestion.query.count(),
             0
         )
@@ -252,8 +210,8 @@ def admin_dashboard():
             []
         )
         proposal_stats = {status: count for status, count in proposal_counts}
-        total_proposals = sum(proposal_stats.values())
-        approved_proposals = proposal_stats.get('approved', 0)
+        context['total_proposals'] = sum(proposal_stats.values())
+        context['approved_proposals'] = proposal_stats.get('approved', 0)
         
         today_start = datetime.combine(today, datetime.min.time())
         week_start = datetime.combine(today - timedelta(days=today.weekday()), datetime.min.time())
@@ -267,7 +225,7 @@ def admin_dashboard():
             ).first(),
             None
         )
-        views_today, views_this_week, views_this_month = views_stats or (0, 0, 0)
+        context['views_today'], context['views_this_week'], context['views_this_month'] = views_stats or (0, 0, 0)
         
         interaction_stats = safe_query(
             lambda: db.session.query(
@@ -282,49 +240,9 @@ def admin_dashboard():
             None
         )
         
-        page_loads, tab_switches, searches, filters, interactions_7_days, interactions_30_days, total_interactions = interaction_stats or (0, 0, 0, 0, 0, 0, 0)
+        context['page_loads'], context['tab_switches'], context['searches'], context['filters'], context['interactions_7_days'], context['interactions_30_days'], context['total_interactions'] = interaction_stats or (0, 0, 0, 0, 0, 0, 0)
         
-        interactions_today = page_loads + tab_switches + searches + filters
-        
-        return render_template('admin/dashboard.html', 
-            pharmacies=pharmacies,
-            garde_pharmacies=garde_pharmacies,
-            total_pharmacies_count=total_pharmacies_count,
-            garde_pharmacies_count=garde_pharmacies_count,
-            gps_pharmacies_count=gps_pharmacies_count,
-            validated_gps_count=validated_gps_count,
-            verified_pharmacies_count=verified_pharmacies_count,
-            pending_locations=pending_locations,
-            pending_infos=pending_infos,
-            pending_suggestions=pending_suggestions,
-            pending_proposals=pending_proposals,
-            top_pharmacies=top_pharmacies,
-            recent_pharmacies=recent_pharmacies,
-            total_views=total_views,
-            views_by_city=views_by_city,
-            pharmacies_by_city=pharmacies_by_city,
-            pharmacies_by_type=pharmacies_by_type,
-            views_last_7_days=views_last_7_days,
-            views_last_30_days=views_last_30_days,
-            total_locations=total_locations,
-            approved_locations=approved_locations,
-            total_infos=total_infos,
-            approved_infos=approved_infos,
-            total_suggestions=total_suggestions,
-            total_proposals=total_proposals,
-            approved_proposals=approved_proposals,
-            views_today=views_today,
-            views_this_week=views_this_week,
-            views_this_month=views_this_month,
-            page_loads=page_loads,
-            tab_switches=tab_switches,
-            searches=searches,
-            filters=filters,
-            total_interactions=total_interactions,
-            interactions_today=interactions_today,
-            interactions_7_days=interactions_7_days,
-            interactions_30_days=interactions_30_days
-        )
+        context['interactions_today'] = context['page_loads'] + context['tab_switches'] + context['searches'] + context['filters']
         
     except Exception as e:
         import traceback
@@ -332,45 +250,7 @@ def admin_dashboard():
         logger.error(f"Dashboard traceback: {traceback.format_exc()}")
         db.session.rollback()
         # Include detailed error in flash message for debugging
-        flash(f'Erreur lors du chargement: {str(e)}', 'error')
-        # If the main try block fails, we still need to render the template
-        # but with the variables we've managed to initialize.
-        return render_template('admin/dashboard.html', 
-            pharmacies=pharmacies,
-            garde_pharmacies=garde_pharmacies,
-            total_pharmacies_count=total_pharmacies_count,
-            garde_pharmacies_count=garde_pharmacies_count,
-            gps_pharmacies_count=gps_pharmacies_count,
-            validated_gps_count=validated_gps_count,
-            verified_pharmacies_count=verified_pharmacies_count,
-            pending_locations=pending_locations,
-            pending_infos=pending_infos,
-            pending_suggestions=pending_suggestions,
-            pending_proposals=pending_proposals,
-            top_pharmacies=top_pharmacies,
-            recent_pharmacies=recent_pharmacies,
-            total_views=total_views,
-            views_by_city=views_by_city,
-            pharmacies_by_city=pharmacies_by_city,
-            pharmacies_by_type=pharmacies_by_type,
-            views_last_7_days=views_last_7_days,
-            views_last_30_days=views_last_30_days,
-            total_locations=total_locations,
-            approved_locations=approved_locations,
-            total_infos=total_infos,
-            approved_infos=approved_infos,
-            total_suggestions=total_suggestions,
-            total_proposals=total_proposals,
-            approved_proposals=approved_proposals,
-            views_today=views_today,
-            views_this_week=views_this_week,
-            views_this_month=views_this_month,
-            page_loads=page_loads,
-            tab_switches=tab_switches,
-            searches=searches,
-            filters=filters,
-            total_interactions=total_interactions,
-            interactions_today=interactions_today,
-            interactions_7_days=interactions_7_days,
-            interactions_30_days=interactions_30_days
-        )
+        flash(f'Erreur lors du chargement des données: {str(e)}', 'error')
+
+    # Variables not in context will be provided by the context_processor
+    return render_template('admin/dashboard.html', **context)

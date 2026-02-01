@@ -68,3 +68,49 @@ from routes.admin import emergency
 from routes.admin import settings
 from routes.admin import ads
 from routes.admin import logs
+
+@admin_bp.context_processor
+def inject_admin_stats():
+    """
+    Ensure all statistical variables used in the admin dashboard are always defined.
+    This provides safe default values for all admin templates.
+    """
+    return {
+        'pharmacies': None,
+        'garde_pharmacies': [],
+        'total_pharmacies_count': 0,
+        'garde_pharmacies_count': 0,
+        'gps_pharmacies_count': 0,
+        'validated_gps_count': 0,
+        'verified_pharmacies_count': 0,
+        'pending_locations': [],
+        'pending_infos': [],
+        'pending_suggestions': [],
+        'pending_proposals': [],
+        'top_pharmacies': [],
+        'recent_pharmacies': [],
+        'total_views': 0,
+        'views_by_city': [],
+        'pharmacies_by_city': [],
+        'pharmacies_by_type': [],
+        'views_last_7_days': [],
+        'views_last_30_days': [],
+        'total_locations': 0,
+        'approved_locations': 0,
+        'total_infos': 0,
+        'approved_infos': 0,
+        'total_suggestions': 0,
+        'total_proposals': 0,
+        'approved_proposals': 0,
+        'views_today': 0,
+        'views_this_week': 0,
+        'views_this_month': 0,
+        'page_loads': 0,
+        'tab_switches': 0,
+        'searches': 0,
+        'filters': 0,
+        'total_interactions': 0,
+        'interactions_today': 0,
+        'interactions_7_days': 0,
+        'interactions_30_days': 0
+    }

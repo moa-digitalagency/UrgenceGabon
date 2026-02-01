@@ -8,6 +8,12 @@ import os
 import sys
 import logging
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Charger les variables d'environnement depuis .env
+env_file = Path('.env')
+if env_file.exists():
+    load_dotenv(env_file)
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')

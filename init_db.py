@@ -18,7 +18,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from sqlalchemy import inspect, text
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -142,8 +142,9 @@ def check_and_add_missing_columns():
         models = get_required_models()
         existing_tables = get_existing_tables()
         inspector = inspect(db.engine)
+        dialect_name = db.engine.dialect.name
         
-        logger.info("Vérification des colonnes existantes:")
+        logger.info(f"Vérification des colonnes existantes (Dialecte: {dialect_name}):")
         
         schema_issues = []
         tables_ok = 0
@@ -182,26 +183,59 @@ def check_and_add_missing_columns():
                     safe_table = table_name
                     safe_col = col_name
 
-                    # Construire la clause ALTER TABLE avec valeur par défaut si nécessaire
-                    if col.nullable:
-                        alter_sql = f'ALTER TABLE "{safe_table}" ADD COLUMN "{safe_col}" {col_type}'
+                    # Déterminer la valeur par défaut
+                    default_clause = ""
+                    if not col.nullable:
+                        default_val = get_default_value_for_column(col, str(col_type))
+                        default_clause = f" DEFAULT {default_val}"
+
+                    # Construire la clause ALTER TABLE
+                    # PostgreSQL supporte IF NOT EXISTS pour ADD COLUMN
+                    if dialect_name == 'postgresql':
+                        alter_sql = f'ALTER TABLE "{safe_table}" ADD COLUMN IF NOT EXISTS "{safe_col}" {col_type}{default_clause}'
                     else:
-                        # Pour les colonnes non-nullables, utiliser une valeur par défaut appropriée
-                        default_val = get_default_value_for_type(str(col_type))
-                        alter_sql = f'ALTER TABLE "{safe_table}" ADD COLUMN "{safe_col}" {col_type} DEFAULT {default_val}'
+                        # SQLite ne supporte pas IF NOT EXISTS dans ADD COLUMN standard, mais supporte ADD COLUMN simple
+                        alter_sql = f'ALTER TABLE "{safe_table}" ADD COLUMN "{safe_col}" {col_type}{default_clause}'
                     
+                    logger.info(f"Exécution: {alter_sql}")
                     db.session.execute(text(alter_sql))
                     db.session.commit()
                     logger.info(f"  ✓ Ajoutée colonne: {table_name}.{col_name}")
-                except OperationalError as e:
+                except (OperationalError, ProgrammingError) as e:
                     db.session.rollback()
-                    logger.error(f"  ⚠️  Erreur SQL pour {table_name}.{col_name}: {e.orig} (non-critique)")
+                    # Ignorer si la colonne existe déjà (cas concurrent ou erreur de détection)
+                    if "duplicate column" in str(e).lower() or "already exists" in str(e).lower():
+                        logger.info(f"  ℹ️  La colonne {table_name}.{col_name} existe déjà (ignoré)")
+                    else:
+                        logger.error(f"  ⚠️  Erreur SQL pour {table_name}.{col_name}: {e.orig} (non-critique)")
                 except Exception as e:
                     db.session.rollback()
                     logger.error(f"  ⚠️  {table_name}.{col_name}: {str(e)[:100]} (non-critique, continuant...)")
                     # Continuer même en cas d'erreur
         
         return True
+
+
+def get_default_value_for_column(col, col_type_str):
+    """Retourne une valeur par défaut appropriée pour une colonne."""
+    # 1. Vérifier server_default (SQL side default)
+    if col.server_default is not None:
+        if hasattr(col.server_default, 'arg'):
+             return str(col.server_default.arg)
+
+    # 2. Vérifier default (Python side default) si c'est une constante simple
+    if col.default is not None:
+        if hasattr(col.default, 'arg'):
+            arg = col.default.arg
+            if isinstance(arg, (int, float)):
+                return str(arg)
+            elif isinstance(arg, bool):
+                return 'TRUE' if arg else 'FALSE'
+            elif isinstance(arg, str):
+                return f"'{arg}'"
+
+    # 3. Fallback sur le type
+    return get_default_value_for_type(col_type_str)
 
 
 def get_default_value_for_type(col_type):
@@ -211,12 +245,12 @@ def get_default_value_for_type(col_type):
     if 'int' in col_type_lower:
         return '0'
     elif 'bool' in col_type_lower:
-        return 'false'
+        return 'FALSE' # Standard SQL
     elif 'date' in col_type_lower or 'time' in col_type_lower:
         return "CURRENT_TIMESTAMP"
-    elif 'text' in col_type_lower or 'string' in col_type_lower or 'varchar' in col_type_lower:
+    elif 'text' in col_type_lower or 'string' in col_type_lower or 'varchar' in col_type_lower or 'char' in col_type_lower:
         return "''"
-    elif 'float' in col_type_lower or 'decimal' in col_type_lower or 'numeric' in col_type_lower:
+    elif 'float' in col_type_lower or 'decimal' in col_type_lower or 'numeric' in col_type_lower or 'real' in col_type_lower:
         return '0.0'
     else:
         return 'NULL'

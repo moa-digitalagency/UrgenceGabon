@@ -134,11 +134,11 @@
                     </div>
                     
                     <div class="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                        <button onclick="filterByCity('')" class="city-filter active px-4 py-2 bg-white text-primary-700 rounded-full text-sm font-medium whitespace-nowrap" data-city="">
+                        <button class="city-filter active px-4 py-2 bg-white text-primary-700 rounded-full text-sm font-medium whitespace-nowrap" data-city="">
                             Toutes
                         </button>
                         {% for ville in villes %}
-                        <button onclick="filterByCity('{{ ville }}')" class="city-filter px-4 py-2 bg-white/10 text-white rounded-full text-sm font-medium whitespace-nowrap hover:bg-white/20" data-city="{{ ville }}">
+                        <button class="city-filter px-4 py-2 bg-white/10 text-white rounded-full text-sm font-medium whitespace-nowrap hover:bg-white/20" data-city="{{ ville }}">
                             {{ ville }}
                         </button>
                         {% endfor %}
@@ -150,19 +150,19 @@
         <div class="hidden lg:block bg-white border-b shadow-sm">
             <div class="max-w-4xl mx-auto px-4">
                 <nav class="flex">
-                    <button onclick="switchTab('pharmacies')" class="tab-btn active px-6 py-4 text-sm font-medium border-b-2 border-primary-600 text-primary-600" data-tab="pharmacies">
+                    <button class="tab-btn active px-6 py-4 text-sm font-medium border-b-2 border-primary-600 text-primary-600" data-tab="pharmacies">
                         Toutes les pharmacies
                     </button>
-                    <button onclick="switchTab('garde')" class="tab-btn px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="garde">
+                    <button class="tab-btn px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="garde">
                         Pharmacies de garde
                     </button>
-                    <button onclick="switchTab('map')" class="tab-btn px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="map">
+                    <button class="tab-btn px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="map">
                         Carte
                     </button>
-                    <button onclick="switchTab('urgences')" class="tab-btn px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="urgences">
+                    <button class="tab-btn px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="urgences">
                         Numéros d'urgence
                     </button>
-                    <button onclick="switchTab('suggestions')" class="tab-btn px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="suggestions">
+                    <button class="tab-btn px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="suggestions">
                         Boîte à suggestions
                     </button>
                 </nav>
@@ -187,7 +187,7 @@
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div class="mb-4">
                         <label for="gardeVilleFilter" class="block text-sm font-medium text-gray-700 mb-2">Filtrer par ville</label>
-                        <select id="gardeVilleFilter" onchange="filterGardeByCity(this.value)" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white">
+                        <select id="gardeVilleFilter" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white">
                             <option value="">Toutes les villes</option>
                             {% for ville in villes %}
                             <option value="{{ ville }}">{{ ville }}</option>
@@ -233,7 +233,7 @@
                                 </div>
                                 <div>
                                     <p class="font-semibold text-gray-800">{{ contact.label }}</p>
-                                    <button onclick="handlePhoneClick('{{ contact.phone_numbers }}', event)" class="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 text-sm font-bold rounded-full mt-1 hover:bg-red-200 transition cursor-pointer">
+                                    <button class="phone-action-btn inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 text-sm font-bold rounded-full mt-1 hover:bg-red-200 transition cursor-pointer" data-phone="{{ contact.phone_numbers }}">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                                         </svg>
@@ -284,7 +284,7 @@
                                 </div>
                                 <div class="flex-1">
                                     <p class="font-semibold text-gray-800">{{ contact.label }}</p>
-                                    <button onclick="handlePhoneClick('{{ contact.phone_numbers }}', event)" class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-sm font-medium rounded-full mt-1 hover:bg-emerald-100 transition cursor-pointer">
+                                    <button class="phone-action-btn inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-sm font-medium rounded-full mt-1 hover:bg-emerald-100 transition cursor-pointer" data-phone="{{ contact.phone_numbers }}">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                                         </svg>
@@ -343,7 +343,7 @@
                         <form id="suggestionForm" class="space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Catégorie *</label>
-                                <select id="suggestionCategory" onchange="updateSuggestionForm()" required class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                <select id="suggestionCategory" required class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                                     <option value="">Sélectionnez une catégorie</option>
                                     <option value="suggestion">Suggestion d'amélioration</option>
                                     <option value="erreur">Signaler une erreur</option>
@@ -443,13 +443,13 @@
                                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
                                             <p class="text-xs text-blue-800">Selectionnez une ville ou cliquez sur le bouton pour recuperer automatiquement votre position</p>
                                         </div>
-                                        <select id="citySelect" onchange="selectCity(this.value)" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-3">
+                                        <select id="citySelect" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-3">
                                             <option value="">-- Selectionner une ville --</option>
                                             {% for ville in villes %}
                                             <option value="{{ ville }}">{{ ville }}</option>
                                             {% endfor %}
                                         </select>
-                                        <button type="button" id="getLocationBtn" onclick="getPharmacyLocation()" class="w-full py-2.5 bg-blue-600 text-white font-medium rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition mb-3">
+                                        <button type="button" id="getLocationBtn" class="w-full py-2.5 bg-blue-600 text-white font-medium rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition mb-3">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -507,7 +507,7 @@
                             </div>
                             <h3 class="text-lg font-semibold text-gray-800 mb-2">Merci pour votre contribution !</h3>
                             <p class="text-gray-600 mb-4">Nous avons bien reçu votre message et nous l'examinerons dans les plus brefs délais.</p>
-                            <button onclick="resetSuggestionForm()" class="px-6 py-2 bg-purple-100 text-purple-700 font-medium rounded-lg hover:bg-purple-200 transition">
+                            <button id="resetSuggestionBtn" class="px-6 py-2 bg-purple-100 text-purple-700 font-medium rounded-lg hover:bg-purple-200 transition">
                                 Envoyer une autre suggestion
                             </button>
                         </div>
@@ -518,31 +518,31 @@
         
         <nav class="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg lg:hidden z-[1100]">
             <div class="flex justify-around py-2">
-                <button onclick="switchTab('pharmacies')" class="mobile-tab-btn active flex flex-col items-center py-1 px-2" data-tab="pharmacies">
+                <button class="mobile-tab-btn active flex flex-col items-center py-1 px-2" data-tab="pharmacies">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                     </svg>
                     <span class="text-[10px] mt-0.5">Pharmacies</span>
                 </button>
-                <button onclick="switchTab('garde')" class="mobile-tab-btn flex flex-col items-center py-1 px-2" data-tab="garde">
+                <button class="mobile-tab-btn flex flex-col items-center py-1 px-2" data-tab="garde">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     <span class="text-[10px] mt-0.5">Garde</span>
                 </button>
-                <button onclick="switchTab('map')" class="mobile-tab-btn flex flex-col items-center py-1 px-2" data-tab="map">
+                <button class="mobile-tab-btn flex flex-col items-center py-1 px-2" data-tab="map">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
                     </svg>
                     <span class="text-[10px] mt-0.5">Carte</span>
                 </button>
-                <button onclick="switchTab('urgences')" class="mobile-tab-btn flex flex-col items-center py-1 px-2" data-tab="urgences">
+                <button class="mobile-tab-btn flex flex-col items-center py-1 px-2" data-tab="urgences">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                     </svg>
                     <span class="text-[10px] mt-0.5">Urgences</span>
                 </button>
-                <button onclick="switchTab('suggestions')" class="mobile-tab-btn flex flex-col items-center py-1 px-2" data-tab="suggestions">
+                <button class="mobile-tab-btn flex flex-col items-center py-1 px-2" data-tab="suggestions">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
                     </svg>
@@ -552,7 +552,7 @@
         </nav>
     </div>
 
-    <button id="gpsLocateBtn" onclick="locateNearestGardePharmacy()" 
+    <button id="gpsLocateBtn"
             class="hidden fixed bottom-24 right-4 lg:bottom-8 lg:right-8 z-[1200] w-11 h-11 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
             title="Localiser les pharmacies de garde près de moi"
             style="pointer-events: auto;">
@@ -570,11 +570,11 @@
                 <h3 id="adTitle" class="text-xl font-bold text-gray-800 mb-2"></h3>
                 <p id="adDescription" class="text-gray-600 text-sm mb-4"></p>
                 <div class="flex flex-col gap-3">
-                    <a id="adCtaBtn" href="#" target="_blank" onclick="handleAdClick()" 
+                    <a id="adCtaBtn" href="#" target="_blank"
                        class="w-full py-3 bg-emerald-600 text-white font-semibold rounded-xl text-center hover:bg-emerald-700 transition">
                         En savoir plus
                     </a>
-                    <button id="adSkipBtn" onclick="closeAdModal()" disabled
+                    <button id="adSkipBtn" disabled
                             class="w-full py-2.5 bg-gray-200 text-gray-500 font-medium rounded-xl transition cursor-not-allowed">
                         Passer la pub (<span id="adCountdown">5</span>s)
                     </button>
@@ -587,7 +587,7 @@
         <div class="bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-y-auto">
             <div class="p-4 border-b sticky top-0 bg-white flex items-center justify-between">
                 <h3 id="modalTitle" class="text-lg font-semibold text-gray-800"></h3>
-                <button onclick="closeModal()" class="p-2 hover:bg-gray-100 rounded-lg">
+                <button class="close-modal-btn p-2 hover:bg-gray-100 rounded-lg">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -666,5 +666,101 @@
         window.pwaEnabled = false;
     </script>
     {% endif %}
+
+    <script nonce="{{ g.nonce }}">
+        document.addEventListener('DOMContentLoaded', function() {
+            // City filter buttons
+            document.querySelectorAll('.city-filter').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    filterByCity(this.dataset.city);
+                });
+            });
+
+            // Tab buttons (desktop and mobile)
+            document.querySelectorAll('.tab-btn, .mobile-tab-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    switchTab(this.dataset.tab);
+                });
+            });
+
+            // Phone action buttons
+            document.querySelectorAll('.phone-action-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    if (window.handlePhoneClick) {
+                        handlePhoneClick(this.dataset.phone, e);
+                    }
+                });
+            });
+
+            // Garde ville filter
+            const gardeFilter = document.getElementById('gardeVilleFilter');
+            if (gardeFilter) {
+                gardeFilter.addEventListener('change', function(e) {
+                    filterGardeByCity(this.value);
+                });
+            }
+
+            // GPS Locate button
+            const gpsBtn = document.getElementById('gpsLocateBtn');
+            if (gpsBtn) {
+                gpsBtn.addEventListener('click', function(e) {
+                    if (window.locateNearestGardePharmacy) locateNearestGardePharmacy();
+                });
+            }
+
+            // Get location button (in form)
+            const locBtn = document.getElementById('getLocationBtn');
+            if (locBtn) {
+                locBtn.addEventListener('click', function(e) {
+                    if (window.getPharmacyLocation) getPharmacyLocation();
+                });
+            }
+
+            // City select (in form)
+            const citySelect = document.getElementById('citySelect');
+            if (citySelect) {
+                citySelect.addEventListener('change', function(e) {
+                    if (window.selectCity) selectCity(this.value);
+                });
+            }
+
+            // Suggestion category
+            const suggCat = document.getElementById('suggestionCategory');
+            if (suggCat) {
+                suggCat.addEventListener('change', function(e) {
+                    if (window.updateSuggestionForm) updateSuggestionForm();
+                });
+            }
+
+            // Suggestion reset
+            const resetBtn = document.getElementById('resetSuggestionBtn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function(e) {
+                    if (window.resetSuggestionForm) resetSuggestionForm();
+                });
+            }
+
+            // Ad buttons
+            const adCta = document.getElementById('adCtaBtn');
+            if (adCta) {
+                adCta.addEventListener('click', function(e) {
+                    if (window.handleAdClick) handleAdClick();
+                });
+            }
+            const adSkip = document.getElementById('adSkipBtn');
+            if (adSkip) {
+                adSkip.addEventListener('click', function(e) {
+                    if (window.closeAdModal) closeAdModal();
+                });
+            }
+
+            // Close modal buttons (using class)
+            document.querySelectorAll('.close-modal-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    if (window.closeModal) closeModal();
+                });
+            });
+        });
+    </script>
 </body>
 </html>

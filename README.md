@@ -1,141 +1,137 @@
-# UrgenceGabon.com
+# 🏥 UrgenceGabon.com
 
-Vous cherchez une pharmacie ouverte à 2h du matin ? Un numéro d'urgence dans une ville que vous ne connaissez pas ? C'est exactement pour ça que ce projet existe.
+![Status](https://img.shields.io/badge/status-production--ready-green)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![License](https://img.shields.io/badge/license-MIT-orange)
 
-UrgenceGabon.com rassemble toutes les pharmacies du pays sur une seule plateforme. On y trouve les horaires, les numéros de téléphone, les pharmacies de garde, et même une carte pour s'y rendre directement.
+> **L'annuaire intelligent des pharmacies de garde au Gabon.**
+> Trouvez instantanément une pharmacie ouverte, localisez-la sur la carte et accédez aux numéros d'urgence vitaux.
 
-## Ce que fait l'application
+---
 
-**Pour les visiteurs :**
-- Chercher une pharmacie par nom, quartier ou ville
-- Voir d'un coup d'oeil quelles pharmacies sont ouvertes 24h/24
-- Appeler directement en cliquant sur un numéro
-- Trouver son chemin grâce à la carte interactive
-- Accéder aux numéros d'urgence (police, pompiers, hôpitaux)
-- Proposer des corrections ou ajouter des pharmacies manquantes
+## 📑 Table des matières
 
-**Pour les administrateurs :**
-- Gérer l'annuaire complet des pharmacies
-- Activer le mode "garde" pour les pharmacies de service
-- Valider les contributions des utilisateurs
-- Configurer les contacts d'urgence par ville
-- Personnaliser l'apparence du site (logo, couleurs, messages)
-- Gérer un système publicitaire non intrusif
+1.  [À propos](#-à-propos)
+2.  [Fonctionnalités Clés](#-fonctionnalités-clés)
+3.  [Stack Technique](#-stack-technique)
+4.  [Installation & Démarrage](#-installation--démarrage)
+5.  [Architecture](#-architecture)
+6.  [Documentation Complète](#-documentation-complète)
 
-## Comment ça marche
+---
 
-L'application tourne sur Flask (Python) avec une base PostgreSQL. Le frontend utilise Tailwind CSS pour le design et Leaflet pour la cartographie.
+## 💡 À propos
 
-**Technologies principales :**
-- Python 3.11 + Flask
-- PostgreSQL + SQLAlchemy
-- Tailwind CSS
-- Leaflet.js + OpenStreetMap
+**UrgenceGabon.com** répond à une problématique critique de santé publique : l'accès rapide et fiable à l'information pharmaceutique, en particulier la nuit et les week-ends.
 
-## Installation
+La plateforme centralise les données de **9 villes** (Libreville, Port-Gentil, Franceville...) et offre une expérience utilisateur fluide, même avec une connexion internet limitée (PWA Ready).
 
-**Ce dont vous avez besoin :**
-- Python 3.11 ou plus récent
-- PostgreSQL
-- pip
+---
 
-**Étapes :**
+## 🚀 Fonctionnalités Clés
 
-1. Récupérez le code :
+*   🔍 **Recherche Instantanée :** Par nom, ville ou proximité.
+*   🌙 **Pharmacies de Garde :** Mise à jour en temps réel des établissements ouverts 24h/24.
+*   🗺️ **Carte Interactive :** Visualisation précise via Leaflet/OpenStreetMap.
+*   🚑 **Numéros d'Urgence :** Accès direct aux services de police, pompiers et SAMU.
+*   📱 **100% Mobile First :** Interface optimisée pour tous les écrans.
+*   🤝 **Crowdsourcing :** Les utilisateurs peuvent signaler des erreurs et proposer des corrections.
+*   🛡️ **Administration Robuste :** Gestion complète des données, validation des contributions et statistiques.
+
+---
+
+## 🛠 Stack Technique
+
+**Backend**
+*   🐍 **Python 3.11**
+*   🌶️ **Flask 3.1** (Micro-framework)
+*   🗄️ **PostgreSQL** + **SQLAlchemy** (ORM)
+*   🔒 **Flask-Login** & **Werkzeug** (Sécurité)
+
+**Frontend**
+*   🎨 **Tailwind CSS** (Utility-first)
+*   ⚡ **JavaScript Vanilla** (Pas de framework lourd)
+*   🗺️ **Leaflet.js** (Cartographie)
+*   📊 **Chart.js** (Tableaux de bord admin)
+
+**DevOps**
+*   🦄 **Gunicorn** (Serveur WSGI)
+*   📦 **Replit** (Environnement de déploiement)
+
+---
+
+## ⚡ Installation & Démarrage
+
+### Pré-requis
+*   Python 3.11+
+*   PostgreSQL (ou SQLite pour le dev local)
+
+### 1. Cloner le projet
 ```bash
-git clone <url-du-repo>
+git clone https://github.com/votre-repo/urgence-gabon.git
 cd urgence-gabon
 ```
 
-2. Installez les dépendances :
+### 2. Installer les dépendances
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Configurez les variables d'environnement :
+### 3. Configurer l'environnement
+Créez un fichier `.env` ou exportez les variables :
 ```bash
-export DATABASE_URL="postgresql://votre_utilisateur:votre_mdp@votre_hote/votre_base"
-export SESSION_SECRET="une-cle-secrete-bien-longue"
+export DATABASE_URL="postgresql://user:pass@localhost/urgence_gabon"
+export SECRET_KEY="votre_cle_secrete_tres_longue"
 export ADMIN_USERNAME="admin"
-export ADMIN_PASSWORD="un-mot-de-passe-solide"
+export ADMIN_PASSWORD="password_securise"
 ```
 
-4. Chargez les données de démonstration :
+### 4. Initialiser la base de données
+Le script est idempotent (ne supprime pas vos données existantes) :
 ```bash
-python init_demo.py
+python init_db.py
 ```
 
-Pour tout effacer et recharger :
+### 5. Lancer le serveur
 ```bash
-python init_demo.py --force
+# Mode développement
+python main.py
+
+# Mode production (Gunicorn)
+gunicorn --bind 0.0.0.0:5000 main:app
 ```
 
-5. Lancez l'application :
-```bash
-gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app
-```
+Accédez à `http://localhost:5000`.
 
-## Organisation du code
+---
 
-```
-urgence-gabon/
-├── app.py                 # Configuration Flask
-├── main.py                # Point d'entrée
-├── extensions.py          # Extensions (base de données, etc.)
-├── init_demo.py           # Chargement des données de démo
-│
-├── models/                # Modèles de données
-│   ├── pharmacy.py        # Pharmacies
-│   ├── admin.py           # Administrateurs
-│   ├── emergency_contact.py
-│   ├── site_settings.py
-│   └── ...
-│
-├── routes/                # Points d'accès
-│   ├── public.py          # Pages et API publiques
-│   └── admin/             # Administration
-│
-├── templates/             # Pages HTML
-├── static/                # CSS, JS, images
-└── docs/                  # Documentation
-```
+## 🏗 Architecture
 
-## Données incluses
+Le projet suit une architecture MVC (Model-View-Controller) modulaire via les **Blueprints Flask** :
 
-Le script de démonstration charge :
-- 89 pharmacies dans 9 villes gabonaises
-- 18 contacts d'urgence (nationaux et locaux)
-- Un message de bienvenue
+*   `models/` : Définitions de la base de données (15 tables).
+*   `routes/` :
+    *   `public.py` : API et vues pour les visiteurs.
+    *   `admin/` : Module d'administration sécurisé.
+*   `static/js/` : Logique frontend modulaire (`map.js`, `pharmacy.js`...).
 
-**Villes couvertes :** Libreville, Port-Gentil, Franceville, Oyem, Mouila, Moanda, Makokou, Koulamoutou, Ntom
+La sécurité est au cœur du design avec **CSRF Protection**, **Rate Limiting** sur les formulaires publics et **Hachage Argon2** des mots de passe.
 
-## Administration
+---
 
-Accès : `/admin` avec les identifiants configurés dans les variables d'environnement.
+## 📚 Documentation Complète
 
-L'interface permet de :
-- Voir les statistiques de fréquentation
-- Gérer les pharmacies (ajouter, modifier, supprimer)
-- Activer les gardes avec dates de début et fin
-- Traiter les soumissions des utilisateurs
-- Configurer les paramètres du site
+Toute la documentation technique et fonctionnelle se trouve dans le dossier `docs/` :
 
-## Documentation
+*   📖 **[Bible des Fonctionnalités](docs/UrgenceGabon_FEATURES_FULL_LIST.md)** : Liste exhaustive de ce que fait l'application.
+*   🏗️ **[Architecture Technique](docs/UrgenceGabon_TECHNICAL_ARCHITECTURE.md)** : Deep dive dans le code et la BDD.
+*   👤 **[Guide Utilisateur](docs/UrgenceGabon_USER_GUIDE.md)** : Comment utiliser le site.
+*   🛡️ **[Guide Administrateur](docs/UrgenceGabon_ADMIN_GUIDE.md)** : Gérer le site au quotidien.
+*   🔌 **[Référence API](docs/UrgenceGabon_API_REFERENCE.md)** : Documentation des endpoints JSON.
+*   💼 **[Présentation Commerciale](docs/UrgenceGabon_COMMERCIAL_PITCH.md)** : Vision et modèle économique.
 
-- [Présentation commerciale](docs/COMMERCIAL.md) - Pour comprendre la valeur du projet
-- [Guide utilisateur commercial](docs/USER_COMMERCIAL.md) - Fonctionnalités détaillées
-- [Documentation API](docs/API.md) - Référence technique
-- [Architecture](docs/ARCHITECTURE.md) - Structure du code
-- [Guide administrateur](docs/ADMIN_GUIDE.md) - Utilisation du panneau admin
+---
 
-## Contribuer
-
-Vous pouvez aider directement depuis l'application :
-- Signaler une erreur dans les informations
-- Proposer les coordonnées GPS d'une pharmacie
-- Suggérer une nouvelle pharmacie
-- Envoyer des idées d'amélioration
-
-## Licence
-
-MIT
+<p align="center">
+  Développé avec ❤️ pour le Gabon 🇬🇦
+</p>
